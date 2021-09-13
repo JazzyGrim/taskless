@@ -1,9 +1,14 @@
 import React from "react";
-import { firebase } from "../firebase";
+import { db } from "../firebase.js";
+import { doc, updateDoc } from "firebase/firestore";
 
 export const Checkbox = ({ id }) => {
   const archiveTask = () => {
-    firebase.firestore.collection("tasks").doc(id).update({ archived: true });
+    const documentRef = doc(db, "tasks", id);
+
+    (async () => {
+      await updateDoc(documentRef, { archived: true });
+    })();
   };
   return (
     <div
