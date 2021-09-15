@@ -14,7 +14,7 @@ export const useTasks = (selectedProject) => {
 
     // Build the query
     if (selectedProject && !collatedTasksExist(selectedProject)) {
-      queryContents.push(where("projectId", "==", "selectedProject"));
+      queryContents.push(where("projectId", "==", selectedProject));
     } else if (selectedProject === "TODAY") {
       queryContents.push(where("date", "==", moment().format("DD/MM/YY")));
     } else if (selectedProject === "INBOX" || selectedProject === 0) {
@@ -73,6 +73,8 @@ export const useProjects = () => {
         ...project.data(),
         docId: project.id,
       }));
+
+      console.log(allProjects);
       // When we check for new projects, check if the projects have changed
       // If they have, update the state, otherwise avoid an infinite loop
       if (JSON.stringify(allProjects) != JSON.stringify(projects))
