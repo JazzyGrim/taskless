@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
-import { fb, db } from "../firebase";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { db } from "../firebase";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
 import { collatedTasksExist } from "../helpers";
 import moment from "moment";
 
@@ -24,10 +30,8 @@ export const useTasks = (selectedProject) => {
     // Assemble the query
     const q = query(collection(db, "tasks"), ...queryContents);
 
-    // Get the tasks
-    (async () => {
-      const querySnapshot = await getDocs(q);
-
+    // Create a change listener, to keep in sync with the database
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       // Create a tasks array
       const newTasks = querySnapshot.docs.map((task) => ({
         id: task.id,
@@ -37,7 +41,7 @@ export const useTasks = (selectedProject) => {
       console.log(newTasks);
 
       setTasks(
-        selectedProject == "NEXT_7"
+        selectedProject === "NEXT_7"
           ? newTasks.filter(
               (task) =>
                 moment(task.date, "DD-MM-YYYY").diff(moment(), "days") < 7 &&
@@ -47,7 +51,9 @@ export const useTasks = (selectedProject) => {
       );
 
       setArchivedTasks(newTasks.filter((task) => task.archived));
-    })();
+    });
+
+    return () => unsubscribe();
   }, [selectedProject]);
 
   return { tasks, archivedTasks };
@@ -64,23 +70,21 @@ export const useProjects = () => {
       orderBy("projectId")
     );
 
-    // Get the tasks
-    (async () => {
-      const querySnapshot = await getDocs(q);
-
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       // Create a projects array
       const allProjects = querySnapshot.docs.map((project) => ({
         ...project.data(),
         docId: project.id,
       }));
 
-      console.log(allProjects);
       // When we check for new projects, check if the projects have changed
       // If they have, update the state, otherwise avoid an infinite loop
-      if (JSON.stringify(allProjects) != JSON.stringify(projects))
-        setProjects(allProjects);
-    })();
-  }, [projects]);
+      console.log("Changed  ", allProjects);
+      setProjects(allProjects);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return { projects, setProjects };
 };

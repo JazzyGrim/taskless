@@ -13,6 +13,9 @@ export const AddProject = ({ shouldShow = false }) => {
   const { projects, setProjects } = useProjectsValue();
 
   const addProject = () => {
+    setProjectName("");
+    setShow(false);
+
     const collectionRef = collection(db, "projects");
 
     projectName &&
@@ -22,10 +25,6 @@ export const AddProject = ({ shouldShow = false }) => {
           name: projectName,
           userId: "3ARLP53uPgxb2RrtcWoK",
         });
-
-        setProjects([...projects]);
-        setProjectName("");
-        setShow(false);
       })();
   };
 

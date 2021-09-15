@@ -430,7 +430,7 @@ header {
     z-index: 99;
     width: 200px !important;
     padding: 10px;
-    top: 20px;
+    top: 25px;
     right: 0;
     background-color: white;
     flex-wrap: wrap;
@@ -531,9 +531,17 @@ header {
         display: block;
         border: 1px solid gray;
         border-radius: 16px;
+
+        &__checked {
+          background-color: gray;
+        }
       }
     }
   }
+}
+
+.strikethrough {
+  text-decoration: line-through;
 }
 
 /* Add Task

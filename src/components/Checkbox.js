@@ -1,28 +1,19 @@
 import React from "react";
-import { db } from "../firebase.js";
-import { doc, updateDoc } from "firebase/firestore";
 
-export const Checkbox = ({ id, taskDesc }) => {
-  const archiveTask = () => {
-    const documentRef = doc(db, "tasks", id);
-
-    (async () => {
-      await updateDoc(documentRef, { archived: true });
-    })();
-  };
+export const Checkbox = ({ taskDesc, checked, archiveWithTimer }) => {
   return (
     <div
       className="checkbox-holder"
       data-testid="checkbox-action"
-      onClick={() => archiveTask()}
+      onClick={() => archiveWithTimer()}
       onKeyDown={(e) => {
-        if (e.key === "Enter") archiveTask();
+        if (e.key === "Enter") archiveWithTimer();
       }}
       aria-label={`Mark ${taskDesc} as done?`}
       role="button"
       tabIndex={0}
     >
-      <span className="checkbox" />
+      <span className={checked ? "checkbox checkbox__checked" : "checkbox"} />
     </div>
   );
 };

@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
-import { Checkbox } from "./Checkbox";
 import { AddTask } from "./AddTask";
 import { useTasks } from "../hooks";
 import { collatedTasks } from "../constants";
 import { getTitle, getCollatedTitle, collatedTasksExist } from "../helpers";
 import { useSelectedProjectValue, useProjectsValue } from "../context";
+import { IndividualTask } from "./IndividualTask";
 
 export const Tasks = () => {
   const { selectedProject } = useSelectedProjectValue();
@@ -23,16 +23,15 @@ export const Tasks = () => {
     selectedProject &&
     !collatedTasksExist(selectedProject)
   ) {
-    projectName = getTitle(projects, selectedProject).name;
+    // Check if the title exists, because it will be empty for a tiny bit when deleting projects
+    projectName = getTitle(projects, selectedProject)
+      ? getTitle(projects, selectedProject).name
+      : "";
   }
 
   useEffect(() => {
     document.title = `${projectName}: Taskless`;
   });
-
-  useEffect(() => {
-    console.log("We got some new tasks boi!");
-  }, [tasks]);
 
   return (
     <div className="tasks" data-testid="tasks">
@@ -40,10 +39,7 @@ export const Tasks = () => {
 
       <ul className="tasks__list">
         {tasks.map((task) => (
-          <li key={`${task.id}`}>
-            <Checkbox id={task.id} taskDesc={task.task} />
-            <span>{task.task}</span>
-          </li>
+          <IndividualTask task={task} />
         ))}
       </ul>
 

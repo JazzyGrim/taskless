@@ -7,7 +7,6 @@ import { ProjectOverlay } from "./ProjectOverlay";
 import { TaskDate } from "./TaskDate";
 import { db } from "../firebase.js";
 import { collection, addDoc } from "firebase/firestore";
-import { useTasks } from "../hooks";
 
 export const AddTask = ({
   showAddTaskMain = true,
@@ -39,6 +38,11 @@ export const AddTask = ({
     task &&
       projectId &&
       (async () => {
+        setShowProjectOverlay(false);
+        setTask("");
+        setProject("");
+        setShowMain("");
+
         await addDoc(collectionRef, {
           archived: false,
           projectId,
@@ -46,33 +50,7 @@ export const AddTask = ({
           date: collatedDate || taskDate,
           userId: "3ARLP53uPgxb2RrtcWoK",
         });
-
-        setTask("");
-        setProject("");
-        setShowMain("");
-        setShowProjectOverlay(false);
       })();
-
-    // return (
-    //   task &&
-    //   projectId &&
-    //   firebase
-    //     .firestore()
-    //     .collection("tasks")
-    //     .add({
-    //       archived: false,
-    //       projectId,
-    //       task,
-    //       date: collatedDate || taskDate,
-    //       userId: "jlIFXIwyAL3tzHMtzRbw",
-    //     })
-    //     .then(() => {
-    //       setTask("");
-    //       setProject("");
-    //       setShowMain("");
-    //       setShowProjectOverlay(false);
-    //     })
-    // );
   };
 
   return (
