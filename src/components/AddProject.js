@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { generatePushId } from "../helpers";
-import { useProjectsValue } from "../context";
+import { useAuthValues } from "../context";
 import { db } from "../firebase.js";
 import { collection, addDoc } from "firebase/firestore";
 
 export const AddProject = ({ shouldShow = false }) => {
   const [show, setShow] = useState(shouldShow);
   const [projectName, setProjectName] = useState("");
+  const { userData } = useAuthValues();
 
   const projectId = generatePushId();
-  const { projects, setProjects } = useProjectsValue();
 
   const addProject = () => {
     setProjectName("");
@@ -23,14 +23,14 @@ export const AddProject = ({ shouldShow = false }) => {
         await addDoc(collectionRef, {
           projectId,
           name: projectName,
-          userId: "3ARLP53uPgxb2RrtcWoK",
+          userId: userData.user.uid,
         });
       })();
   };
 
   return (
     <div className="add-project" data-testid="add-project">
-      {show && (
+      {show ? (
         <div className="add-project__input" data-testid="add-project-inner">
           <input
             value={projectName}
@@ -62,21 +62,24 @@ export const AddProject = ({ shouldShow = false }) => {
             Cancel
           </span>
         </div>
+      ) : (
+        <>
+          <span className="add-project__plus">+</span>
+          <span
+            aria-label="Add Project"
+            data-testid="add-project-action"
+            className="add-project__text"
+            onClick={() => setShow(!show)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") setShow(!show);
+            }}
+            role="button"
+            tabIndex={0}
+          >
+            Add Project
+          </span>
+        </>
       )}
-      <span className="add-project__plus">+</span>
-      <span
-        aria-label="Add Project"
-        data-testid="add-project-action"
-        className="add-project__text"
-        onClick={() => setShow(!show)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") setShow(!show);
-        }}
-        role="button"
-        tabIndex={0}
-      >
-        Add Project
-      </span>
     </div>
   );
 };

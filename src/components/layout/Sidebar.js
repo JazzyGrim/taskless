@@ -10,8 +10,7 @@ import { useSelectedProjectValue } from "../../context";
 import { AddProject } from "../AddProject";
 
 export const Sidebar = () => {
-  const { setSelectedProject } = useSelectedProjectValue();
-  const [active, setActive] = useState("inbox");
+  const { selectedProject, setSelectedProject } = useSelectedProjectValue();
   const [showProjects, setShowProjects] = useState(true);
 
   return (
@@ -19,7 +18,7 @@ export const Sidebar = () => {
       <ul className="sidebar__generic">
         <li
           data-testid="inbox"
-          className={active === "inbox" ? "active" : undefined}
+          className={selectedProject === "INBOX" ? "active" : undefined}
         >
           <div
             data-testid="inbox-action"
@@ -27,12 +26,10 @@ export const Sidebar = () => {
             tabIndex={0}
             role="button"
             onClick={() => {
-              setActive("inbox");
               setSelectedProject("INBOX");
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                setActive("inbox");
                 setSelectedProject("INBOX");
               }
             }}
@@ -45,7 +42,7 @@ export const Sidebar = () => {
         </li>
         <li
           data-testid="today"
-          className={active === "today" ? "active" : undefined}
+          className={selectedProject === "TODAY" ? "active" : undefined}
         >
           <div
             data-testid="today-action"
@@ -53,12 +50,10 @@ export const Sidebar = () => {
             tabIndex={0}
             role="button"
             onClick={() => {
-              setActive("today");
               setSelectedProject("TODAY");
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                setActive("today");
                 setSelectedProject("TODAY");
               }
             }}
@@ -71,7 +66,7 @@ export const Sidebar = () => {
         </li>
         <li
           data-testid="next_7"
-          className={active === "next_7" ? "active" : undefined}
+          className={selectedProject === "NEXT_7" ? "active" : undefined}
         >
           <div
             data-testid="next_7-action"
@@ -79,12 +74,10 @@ export const Sidebar = () => {
             tabIndex={0}
             role="button"
             onClick={() => {
-              setActive("next_7");
               setSelectedProject("NEXT_7");
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
-                setActive("next_7");
                 setSelectedProject("NEXT_7");
               }
             }}

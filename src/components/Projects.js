@@ -3,14 +3,9 @@ import PropTypes from "prop-types";
 import { useSelectedProjectValue, useProjectsValue } from "../context";
 import { IndividualProject } from "./IndividualProject";
 
-export const Projects = ({ activeValue = null }) => {
-  const [active, setActive] = useState(activeValue);
-  const { setSelectedProject } = useSelectedProjectValue();
+export const Projects = () => {
+  const { selectedProject, setSelectedProject } = useSelectedProjectValue();
   const { projects } = useProjectsValue();
-
-  useEffect(() => {
-    console.log("Projects in component: ", projects);
-  }, [projects]);
 
   return (
     projects &&
@@ -20,7 +15,7 @@ export const Projects = ({ activeValue = null }) => {
         data-testid="project-action-parent"
         data-doc-id={project.docId}
         className={
-          active === project.projectId
+          selectedProject === project.projectId
             ? "active sidebar__project"
             : "sidebar__project"
         }
@@ -31,12 +26,10 @@ export const Projects = ({ activeValue = null }) => {
           tabIndex={0}
           aria-label={`Select ${project.name} as the task project`}
           onClick={() => {
-            setActive(project.projectId);
             setSelectedProject(project.projectId);
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              setActive(project.projectId);
               setSelectedProject(project.projectId);
             }
           }}
@@ -46,8 +39,4 @@ export const Projects = ({ activeValue = null }) => {
       </li>
     ))
   );
-};
-
-Projects.propTypes = {
-  activeValue: PropTypes.bool,
 };

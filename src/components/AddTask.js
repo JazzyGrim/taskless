@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaRegListAlt, FaRegCalendarAlt } from "react-icons/fa";
 import moment from "moment";
 import PropTypes from "prop-types";
-import { useSelectedProjectValue } from "../context";
+import { useAuthValues, useSelectedProjectValue } from "../context";
 import { ProjectOverlay } from "./ProjectOverlay";
 import { TaskDate } from "./TaskDate";
 import { db } from "../firebase.js";
@@ -13,6 +13,7 @@ export const AddTask = ({
   shouldShowMain = false,
   showQuickAddTask,
   setShowQuickAddTask,
+  setShowLoader,
 }) => {
   const [task, setTask] = useState("");
   const [taskDate, setTaskDate] = useState("");
@@ -20,6 +21,7 @@ export const AddTask = ({
   const [showMain, setShowMain] = useState(shouldShowMain);
   const [showProjectOverlay, setShowProjectOverlay] = useState(false);
   const [showTaskDate, setShowTaskDate] = useState(false);
+  const { userData } = useAuthValues();
 
   const { selectedProject } = useSelectedProjectValue();
 
@@ -38,6 +40,7 @@ export const AddTask = ({
     task &&
       projectId &&
       (async () => {
+        if (setShowLoader) setShowLoader(true); // Start a loader when adding a new task
         setShowProjectOverlay(false);
         setTask("");
         setProject("");
@@ -45,10 +48,13 @@ export const AddTask = ({
 
         await addDoc(collectionRef, {
           archived: false,
-          projectId,
+          projectId:
+            projectId === "TODAY" || projectId === "NEXT_7"
+              ? "INBOX"
+              : projectId,
           task,
           date: collatedDate || taskDate,
-          userId: "3ARLP53uPgxb2RrtcWoK",
+          userId: userData.user.uid,
         });
       })();
   };
@@ -58,7 +64,7 @@ export const AddTask = ({
       className={showQuickAddTask ? "add-task add-task__overlay" : "add-task"}
       data-testid="add-task-comp"
     >
-      {showAddTaskMain && (
+      {showAddTaskMain && !(showMain || showQuickAddTask) && (
         <div
           className="add-task__shallow"
           data-testid="show-main-action"

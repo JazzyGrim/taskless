@@ -1,11 +1,42 @@
-import React, { useState } from "react";
-import { FaPizzaSlice } from "react-icons/fa";
+import React, { useEffect, useRef, useState } from "react";
+import { FaPizzaSlice, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import PropTypes from "prop-types";
 import { AddTask } from "../AddTask";
+import { getAuth, signOut } from "firebase/auth";
 
 export const Header = ({ darkMode, setDarkMode }) => {
   const [shouldShowMain, setShouldShowMain] = useState(false);
   const [showQuickAddTask, setShowQuickAddTask] = useState(false);
+  const [showSettings, setShouldShowSettings] = useState(false);
+  const wrapperRef = useRef();
+  const buttonRef = useRef();
+
+  const handleClick = (e) => {
+    if (
+      wrapperRef.current &&
+      !wrapperRef.current.contains(e.target) &&
+      buttonRef.current &&
+      !buttonRef.current.contains(e.target)
+    ) {
+      setShouldShowSettings(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const logout = () => {
+    const auth = getAuth();
+    signOut(auth)
+      .then(() => {
+        // Sign-out successful.
+      })
+      .catch((error) => {
+        // An error happened.
+      });
+  };
 
   return (
     <header className="header" data-testid="header">
@@ -37,6 +68,37 @@ export const Header = ({ darkMode, setDarkMode }) => {
               >
                 <FaPizzaSlice />
               </button>
+            </li>
+            <li className="settings__profile">
+              <button
+                data-testid="user-settings-action"
+                aria-label="User Settings"
+                type="button"
+                onClick={() => setShouldShowSettings((prev) => !prev)}
+                ref={buttonRef}
+              >
+                <FaUserCircle />
+              </button>
+              {showSettings && (
+                <div className="user-settings-modal" ref={wrapperRef}>
+                  <span
+                    onClick={() => {
+                      logout();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        logout();
+                      }
+                    }}
+                    aria-label="Sign out of Taskless"
+                    tabIndex={0}
+                    role="button"
+                  >
+                    <FaSignOutAlt />
+                    Log out
+                  </span>
+                </div>
+              )}
             </li>
           </ul>
         </div>

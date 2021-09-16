@@ -1,9 +1,11 @@
 import React, { createContext, useContext } from "react";
+import { useAuthValues } from ".";
 import { useProjects } from "../hooks";
 
 export const ProjectsContext = createContext();
 export const ProjectsProvider = ({ children }) => {
-  const { projects, setProjects } = useProjects();
+  const { userData } = useAuthValues();
+  const { projects, setProjects } = useProjects(userData.user.uid);
 
   return (
     <ProjectsContext.Provider value={{ projects, setProjects }}>

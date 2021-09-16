@@ -7,24 +7,31 @@ import {
   orderBy,
   onSnapshot,
 } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { collatedTasksExist } from "../helpers";
 import moment from "moment";
 
-export const useTasks = (selectedProject) => {
+export const useTasks = (selectedProject, userId) => {
   const [tasks, setTasks] = useState([]);
   const [archivedTasks, setArchivedTasks] = useState([]);
 
   useEffect(() => {
     // Get all the tasks for a user
-    let queryContents = [where("userId", "==", "3ARLP53uPgxb2RrtcWoK")];
+    let queryContents = [where("userId", "==", userId)];
 
     // Build the query
     if (selectedProject && !collatedTasksExist(selectedProject)) {
       queryContents.push(where("projectId", "==", selectedProject));
+    } else if (selectedProject === "NEXT_7") {
+      queryContents.push(where("date", ">=", moment().format("DD/MM/YYYY")));
+      queryContents.push(
+        where("date", "<=", moment().add(7, "days").format("DD/MM/YYYY"))
+      );
+      queryContents.push(orderBy("date"));
     } else if (selectedProject === "TODAY") {
-      queryContents.push(where("date", "==", moment().format("DD/MM/YY")));
+      queryContents.push(where("date", "==", moment().format("DD/MM/YYYY")));
     } else if (selectedProject === "INBOX" || selectedProject === 0) {
-      queryContents.push(where("date", "==", ""));
+      queryContents.push(where("projectId", "==", "INBOX"));
     }
 
     // Assemble the query
@@ -40,15 +47,7 @@ export const useTasks = (selectedProject) => {
 
       console.log(newTasks);
 
-      setTasks(
-        selectedProject === "NEXT_7"
-          ? newTasks.filter(
-              (task) =>
-                moment(task.date, "DD-MM-YYYY").diff(moment(), "days") < 7 &&
-                !task.archived
-            )
-          : newTasks.filter((task) => !task.archived)
-      );
+      setTasks(newTasks.filter((task) => !task.archived));
 
       setArchivedTasks(newTasks.filter((task) => task.archived));
     });
@@ -59,14 +58,14 @@ export const useTasks = (selectedProject) => {
   return { tasks, archivedTasks };
 };
 
-export const useProjects = () => {
+export const useProjects = (userId) => {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
     // Get all the user's projects
     const q = query(
       collection(db, "projects"),
-      where("userId", "==", "3ARLP53uPgxb2RrtcWoK"),
+      where("userId", "==", userId),
       orderBy("projectId")
     );
 
@@ -77,9 +76,6 @@ export const useProjects = () => {
         docId: project.id,
       }));
 
-      // When we check for new projects, check if the projects have changed
-      // If they have, update the state, otherwise avoid an infinite loop
-      console.log("Changed  ", allProjects);
       setProjects(allProjects);
     });
 
@@ -87,4 +83,37 @@ export const useProjects = () => {
   }, []);
 
   return { projects, setProjects };
+};
+
+export const useAuth = () => {
+  const [userData, setUserData] = useState({});
+
+  useEffect(() => {
+    const auth = getAuth();
+
+    if (userData.listener == null) {
+      setUserData({
+        ...userData,
+        listener: onAuthStateChanged(auth, (user) => {
+          if (user)
+            setUserData((oldState) => ({
+              ...oldState,
+              userDataPresent: true,
+              user: user,
+            }));
+          else
+            setUserData((oldState) => ({
+              ...oldState,
+              userDataPresent: false,
+              user: null,
+            }));
+        }),
+      });
+    }
+    return () => {
+      if (userData.listener) userData.listener();
+    };
+  }, []);
+
+  return { userData };
 };
