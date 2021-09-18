@@ -6,10 +6,100 @@ import {
   where,
   orderBy,
   onSnapshot,
+  getDocs,
 } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { collatedTasksExist } from "../helpers";
 import moment from "moment";
+
+export const useOrder = (selectedProject, userId) => {
+  const [orders, setOrders] = useState({});
+
+  useEffect(() => {
+    let queryUser = false;
+    // Get all the collestions for a user
+    let queryContents = [where("userId", "==", userId)];
+    let cqueryContents = [where("userId", "==", userId)];
+
+    // Build the query
+    if (selectedProject && !collatedTasksExist(selectedProject)) {
+      queryContents.push(where("projectId", "==", selectedProject));
+    } else if (selectedProject === "INBOX" || selectedProject === 0) {
+      queryUser = true;
+      cqueryContents.push(where("projectId", "==", selectedProject));
+    } else {
+      setOrders({}); // No order when we are looking at TODAY or NEXT_7
+      return; // Don't do anything else
+    }
+
+    // Assemble the query
+    const q = query(
+      collection(db, queryUser ? "users" : "projects"),
+      ...queryContents
+    );
+    const cq = query(collection(db, "sections"), ...cqueryContents);
+
+    (async () => {
+      const querySnapshot = await getDocs(q);
+      const collectionQuerySnapshot = await getDocs(cq);
+
+      let newOrders = {};
+
+      if (querySnapshot.docs.length) {
+        newOrders[queryUser ? "INBOX" : querySnapshot.docs[0].id] =
+          querySnapshot.docs[0].data().order;
+      }
+
+      if (collectionQuerySnapshot.docs.length) {
+        collectionQuerySnapshot.docs.forEach((c) => {
+          newOrders[c.id] = c.data().order;
+        });
+      }
+
+      console.log("NEW ORDERS STATE: ", newOrders);
+      setOrders(newOrders);
+    })();
+  }, [selectedProject]);
+
+  return { orders, setOrders };
+};
+
+export const useSections = (selectedProject, userId) => {
+  const [sections, setSections] = useState([]);
+
+  useEffect(() => {
+    // Get all the collestions for a user
+    let queryContents = [where("userId", "==", userId)];
+
+    // Build the query
+    if (selectedProject && !collatedTasksExist(selectedProject)) {
+      queryContents.push(where("projectId", "==", selectedProject));
+    } else if (selectedProject === "INBOX" || selectedProject === 0) {
+      queryContents.push(where("projectId", "==", "INBOX"));
+    } else {
+      setSections([]); // No sections when we are looking at TODAY or NEXT_7
+      return; // Don't do anything else
+    }
+
+    // Assemble the query
+    const q = query(collection(db, "sections"), ...queryContents);
+
+    // Create a change listener, to keep in sync with the database
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      // Create a tasks array
+      const newSections = querySnapshot.docs.map((section) => ({
+        id: section.id,
+        ...section.data(),
+      }));
+
+      setSections(newSections);
+    });
+
+    return () => unsubscribe();
+  }, [selectedProject]);
+
+  return { sections };
+};
 
 export const useTasks = (selectedProject, userId) => {
   const [tasks, setTasks] = useState([]);
@@ -45,8 +135,6 @@ export const useTasks = (selectedProject, userId) => {
         ...task.data(),
       }));
 
-      console.log(newTasks);
-
       setTasks(newTasks.filter((task) => !task.archived));
 
       setArchivedTasks(newTasks.filter((task) => task.archived));
@@ -55,7 +143,7 @@ export const useTasks = (selectedProject, userId) => {
     return () => unsubscribe();
   }, [selectedProject]);
 
-  return { tasks, archivedTasks };
+  return { tasks, setTasks, archivedTasks };
 };
 
 export const useProjects = (userId) => {

@@ -52,6 +52,7 @@ export const AddTask = ({
             projectId === "TODAY" || projectId === "NEXT_7"
               ? "INBOX"
               : projectId,
+          collectionId: "",
           task,
           date: collatedDate || taskDate,
           userId: userData.user.uid,
