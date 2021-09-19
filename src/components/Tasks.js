@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import { AddTask } from "./AddTask";
 import { useSections, useTasks } from "../hooks";
 import { collatedTasks } from "../constants";
-import { getTitle, getCollatedTitle, collatedTasksExist } from "../helpers";
+import {
+  getTitle,
+  getCollatedTitle,
+  collatedTasksExist,
+  getProjectById,
+} from "../helpers";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import {
   useSelectedProjectValue,
@@ -18,22 +23,15 @@ export const Tasks = () => {
   const { userData } = useAuthValues();
   const { selectedProject } = useSelectedProjectValue();
   const { projects } = useProjectsValue();
-  const { tasks, setTasks } = useTasks(selectedProject, userData.user.uid);
+  const { tasks } = useTasks(selectedProject, userData.user.uid);
   const { sections } = useSections(selectedProject, userData.user.uid);
 
-  const [taskOrder, setTaskOrder] = useState([
-    "HzEh98XmjC9aIUXxi8NN",
-    "ZNDemvSmr8MJtRPKFTEW",
-    "71OpNfGJstF9pIIGP6HS",
-    "AAGRgN95WCfUzMBgapoV",
-  ]);
-  const [sectionOrder, setSectionOrder] = useState([
-    "ISP8pR2SlppaEB7qN3cr",
-    "dy1kbeiE8AnH6fJCzXV5",
-  ]);
-
-  const [orderedTasks, setOrderedTasks] = useState([]);
-  const [orderedSections, setOrderedSections] = useState([]);
+  const [orderObject, setOrderObject] = useState({
+    for: selectedProject,
+    ungrouped: [],
+    sectionOrder: [],
+    sections: [],
+  });
 
   let projectName = "";
 
@@ -56,41 +54,66 @@ export const Tasks = () => {
   // Once the tasks update, stop the loader
   useEffect(() => {
     setShowLoader(false);
-    // When we change projects, we need to sort the tasks
-    sortTasks(taskOrder);
   }, [tasks]);
 
-  useEffect(() => {
-    sortSections();
-  }, [sections]);
-
   // useEffect(() => {
-  //   console.log(JSON.stringify(orderedTasks.map((t) => t.sectionId)));
-  // }, [orderedTasks]);
+  //   projects && projects.length > 0 && selectedProject && sortSections();
+  // }, [sections]);
 
   // If we change the selected task, activate the loader
   useEffect(() => {
     setShowLoader(true);
+    setOrderObject({ ...orderObject, for: selectedProject });
   }, [selectedProject]);
 
   useEffect(() => {
     document.title = `${projectName}: Taskless`;
   });
 
-  const sortTasks = (order) => {
-    console.log("🙂 Sorting tasks!");
-    const ordered = tasks.slice().sort(function (a, b) {
-      return order.indexOf(a.id) - order.indexOf(b.id);
+  useEffect(() => {
+    if (!projects || !projects.length || collatedTasksExist(selectedProject))
+      return;
+    calculateOrder(getProjectById(projects, selectedProject));
+  }, [projects, selectedProject, tasks, sections]);
+
+  useEffect(() => {}, [tasks, sections]);
+
+  const calculateOrder = (project) => {
+    const orderedTasks =
+      tasks.length && project.order ? sortArrayById(tasks, project.order) : [];
+    const orderedSections =
+      sections.length && project.sectionOrder
+        ? sortArrayById(sections, project.sectionOrder)
+        : [];
+
+    // Find the ungrouped tasks
+    const ungrouped = orderedTasks
+      .filter((task) => task.sectionId === "")
+      .map((task) => task.id);
+
+    const sectionTaskOrder = {
+      for: selectedProject,
+      ungrouped,
+      sectionOrder: project.sectionOrder,
+      sections: [],
+    };
+
+    orderedSections.forEach((section) => {
+      sectionTaskOrder.sections.push({
+        id: section.id,
+        order: orderedTasks
+          .filter((task) => task.sectionId === section.id)
+          .map((task) => task.id),
+      });
     });
-    setOrderedTasks(ordered);
+
+    setOrderObject(sectionTaskOrder);
   };
 
-  const sortSections = (newSectionOrder) => {
-    const orderList = newSectionOrder ? newSectionOrder : sectionOrder;
-    const orderedS = sections.slice().sort(function (a, b) {
-      return orderList.indexOf(a.id) - orderList.indexOf(b.id);
+  const sortArrayById = (sortable, sortWith) => {
+    return sortable.slice().sort(function (a, b) {
+      return sortWith.indexOf(a.id) - sortWith.indexOf(b.id);
     });
-    setOrderedSections(orderedS);
   };
 
   const onDragEnd = (result) => {
@@ -107,58 +130,103 @@ export const Tasks = () => {
     }
 
     if (type === "section") {
-      // There is only one droppable for sections
-      let newSectionOrder = [...sectionOrder];
+      // First update the section order
+      let newSectionOrder = [...orderObject.sectionOrder];
+
       newSectionOrder.splice(source.index, 1);
       newSectionOrder.splice(destination.index, 0, draggableId);
-      sortSections(newSectionOrder);
-      setSectionOrder(newSectionOrder);
-    } else if (type === "task") {
-      // ----------------
-      // Reorder elements
-      // ----------------
-      let newTaskOrder = [...taskOrder];
-      let sourceIndex = source.index;
-      let destinationIndex = destination.index;
 
-      if (
-        source.droppableId !== destination.droppableId &&
-        destinationIndex > sourceIndex
-      )
-        destinationIndex -= 1;
+      // Now sort the sections based on the new order
+      let newSections = [...orderObject.sections];
+      newSections = sortArrayById(newSections, newSectionOrder);
 
-      console.log(
-        "Source index: " +
-          sourceIndex +
-          "\nDestination index: " +
-          destinationIndex
-      );
-      // console.log("Before removal:\n", JSON.stringify(newTaskOrder));
-      newTaskOrder.splice(sourceIndex, 1);
-      // console.log("Before Addition:\n", JSON.stringify(newTaskOrder));
-      newTaskOrder.splice(destinationIndex, 0, draggableId);
-      console.log("After addition:\n", JSON.stringify(newTaskOrder));
+      // Update the order object!
+      setOrderObject({
+        ...orderObject,
+        sectionOrder: newSectionOrder,
+        sections: newSections,
+      });
 
-      setTaskOrder(newTaskOrder); // Store the task order for the DB
-
-      // If we are moving between sections
-      if (source.droppableId !== destination.droppableId) {
-        let newTasks = [...tasks];
-        let idInArray = newTasks.findIndex((task) => task.id === draggableId);
-
-        // Change the section ID for the task
-        newTasks[idInArray].sectionId =
-          destination.droppableId === "unsorted" ? "" : destination.droppableId;
-
-        // Update the tasks
-        // !!! SHOULD CAUSE A RE-RENDER and RE-SORT
-        setTasks(newTasks);
-
-        // setOrderedTasks(newTasks);
-      } else {
-        sortTasks(newTaskOrder); // Update the task order
-      }
+      return;
     }
+    // ----------------
+    // We are dealing with a task
+    // ----------------
+    // Reorder elements
+    // ----------------
+    let newTaskOrder = [...getProjectById(projects, selectedProject).order];
+    let sourceIndex = source.index;
+    let destinationIndex = destination.index;
+
+    let home = orderObject.sections.find((s) => s.id === source.droppableId);
+    let foreign = orderObject.sections.find(
+      (s) => s.id === destination.droppableId
+    );
+
+    // If we are dealing with the ungrouped section
+    if (!home) home = { id: "ungrouped", order: orderObject.ungrouped };
+    if (!foreign) foreign = { id: "ungrouped", order: orderObject.ungrouped };
+
+    if (JSON.stringify(home) === JSON.stringify(foreign)) {
+      const newTaskOrder = Array.from(home.order);
+      newTaskOrder.splice(source.index, 1);
+      newTaskOrder.splice(destination.index, 0, draggableId);
+
+      // If we are setting the ungrouped order
+      if (home.id === "ungrouped") {
+        setOrderObject({ ...orderObject, ungrouped: newTaskOrder });
+      } else {
+        // We are setting a section order
+        let newSections = [...orderObject.sections];
+        // Go through each section
+        newSections = newSections.map((section) => {
+          let newSectionData = { ...section };
+          // If we find the section we're updating, update it's t ask order
+          if (section.id === home.id) newSectionData.order = newTaskOrder;
+          return newSectionData;
+        });
+        setOrderObject({ ...orderObject, sections: newSections });
+      }
+      return;
+    }
+
+    let ungroupedOrder = [...orderObject.ungrouped];
+
+    // Moving from one section to another
+    const homeOrder = Array.from(home.order);
+    homeOrder.splice(source.index, 1);
+    const newHome = {
+      ...home,
+      order: homeOrder,
+    };
+
+    if (newHome.id === "ungrouped") ungroupedOrder = homeOrder;
+
+    const foreignOrder = Array.from(foreign.order);
+    foreignOrder.splice(destination.index, 0, draggableId);
+    const newForeign = {
+      ...foreign,
+      order: foreignOrder,
+    };
+
+    if (newForeign.id === "ungrouped") ungroupedOrder = foreignOrder;
+
+    // We are setting a section order
+    let newSections = [...orderObject.sections];
+    // Go through each section
+    newSections = newSections.map((section) => {
+      let newSectionData = { ...section };
+      // If we find the section we're updating, update it's t ask order
+      if (section.id === home.id) return newHome;
+      if (section.id === foreign.id) return newForeign;
+      return newSectionData;
+    });
+
+    setOrderObject({
+      ...orderObject,
+      ungrouped: ungroupedOrder,
+      sections: newSections,
+    });
   };
 
   return (
@@ -169,14 +237,25 @@ export const Tasks = () => {
         {showLoader ? (
           <Spinner />
         ) : selectedProject === "TODAY" || selectedProject === "NEXT_7" ? (
-          <Collection tasks={orderedTasks} projects={projects} />
+          <Collection tasks={tasks} projects={projects} />
         ) : (
           <>
-            <Collection
-              tasks={orderedTasks.filter((task) => task.sectionId === "")}
-              projects={projects}
-              index={-1}
-            />
+            {orderObject.for === selectedProject && (
+              <Collection
+                tasks={
+                  tasks.length
+                    ? sortArrayById(
+                        tasks.filter((t) =>
+                          orderObject.ungrouped.includes(t.id)
+                        ),
+                        orderObject.ungrouped
+                      )
+                    : []
+                }
+                projects={projects}
+                index={-1}
+              />
+            )}
             <Droppable droppableId="all-sections" type="section">
               {(provided, snapshot) => (
                 <div
@@ -189,27 +268,27 @@ export const Tasks = () => {
                   {...provided.dragHandleProps}
                   ref={provided.innerRef}
                 >
-                  {orderedSections.map((section, index) => {
-                    const filtered = orderedTasks.filter(
-                      (task) => task.sectionId === section.id
-                    );
-                    let offset = 0;
-                    for (let i = 0; i < orderedTasks.length; i++) {
-                      if (orderedTasks[i].sectionId === section.id) break;
-                      offset++;
-                    }
-                    // console.log(section.name + " OFFSET: " + offset);
-                    return (
-                      <Section
-                        key={section.id}
-                        tasks={filtered}
-                        section={section}
-                        projects={projects}
-                        index={index}
-                        offset={offset}
-                      />
-                    );
-                  })}
+                  {orderObject.for === selectedProject &&
+                    orderObject.sections.map((section, index) => {
+                      return (
+                        <Section
+                          key={section.id}
+                          tasks={
+                            tasks.length
+                              ? sortArrayById(
+                                  tasks.filter((t) =>
+                                    section.order.includes(t.id)
+                                  ),
+                                  section.order
+                                )
+                              : []
+                          }
+                          section={sections.find((s) => s.id === section.id)}
+                          projects={projects}
+                          index={index}
+                        />
+                      );
+                    })}
 
                   {/* <Collection tasks={[]} projects={projects} /> */}
                   {provided.placeholder}

@@ -528,6 +528,27 @@ header {
   }
 }
 
+/* General Reusable
+     ============================================ */
+
+.handle {
+  display: block;
+  cursor: move;
+  opacity: 0;
+  margin-right: 6px;
+  padding: 1px;
+  border-radius: 3px;
+
+  &:hover {
+    opacity: 1;
+    background-color: #ececec;
+  }
+}
+
+.visible {
+  opacity: 1;
+}
+
 /* Main Content
      ============================================ */
 .content {
@@ -549,8 +570,8 @@ header {
   border-right: $generic-border;
   min-height: calc(100vh);
   vertical-align: top;
-  padding-left: 40px;
-  padding-right: 40px;
+  padding-left: 20px;
+  padding-right: 20px;
   padding-top: 80px;
   padding-bottom: 84px;
 
@@ -559,19 +580,15 @@ header {
     width: auto;
   }
 
-  .drag-over {
-    // background-color: rgba(150, 150, 150, 0.1);
-    // border-radius: 5px;
-  }
-
   h2 {
     font-size: 20px;
     font-weight: normal;
-    margin: 0 30px 20px 0;
+    margin: 0 10px 10px 40px;
   }
 
   .add-task {
     margin-top: 20px;
+    margin-left: 40px;
   }
 
   .indented {
@@ -592,12 +609,25 @@ header {
       cursor: pointer;
       padding-top: 10px;
 
+      &:hover .handle {
+        opacity: 1;
+      }
+
       span {
         color: #0000008a;
         margin-right: 10px;
+        @include va;
+        height: 24px;
+        width: 24px;
+        padding: 3px;
+        border-radius: 3px;
 
         svg {
           // transition: transform 200ms ease-in-out;
+        }
+
+        &:hover {
+          background-color: #ececec;
         }
 
         svg.hidden-collection {
@@ -605,14 +635,24 @@ header {
           transform: rotate(-90deg);
         }
       }
-    }
 
-    h2 {
-      margin: 0;
-      padding: 0;
-      color: #333;
-      font-size: 14px;
-      font-weight: bold;
+      h2 {
+        margin: 0 10px 0 0;
+        padding: 0;
+        color: #333;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: bold;
+        @include va;
+      }
+
+      h6 {
+        color: grey;
+        font-size: 12px;
+        font-weight: 400;
+        margin: 0;
+        @include va;
+      }
     }
   }
 
@@ -634,8 +674,17 @@ header {
     list-style-type: none;
     border-bottom: 1px solid #f0f0f0;
 
+    position: relative;
+
+    &:hover .handle {
+      opacity: 1;
+    }
+
     .checkbox-holder {
-      margin-right: 20px;
+      margin-right: 10px;
+      width: 24px;
+      height: 24px;
+
       display: -webkit-box;
       display: -ms-flexbox;
       display: flex;
@@ -668,9 +717,18 @@ header {
       @include flex;
       flex-wrap: wrap;
       justify-content: flex-start;
+      padding: 2px 0;
 
       .task-title {
         width: 100%;
+      }
+
+      .task-description {
+        width: 100%;
+        font-size: 12px;
+        word-wrap: break-word;
+        word-break: break-all;
+        color: grey;
       }
 
       .task-info {

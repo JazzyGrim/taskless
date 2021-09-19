@@ -3,31 +3,25 @@ import { getTitle } from "../helpers";
 import { IndividualTask } from "./IndividualTask";
 import { Droppable } from "react-beautiful-dnd";
 
-export const Collection = ({ tasks, projects, section, offset }) => {
+export const Collection = ({ tasks, projects, section }) => {
   const [showCollection, setShowCollection] = useState(true);
 
+  // console.log(tasks);
   return (
     <Droppable droppableId={section ? section.id : "unsorted"} type="task">
-      {(provided, snapshot) => (
+      {(provided) => (
         <div
           ref={provided.innerRef}
           className="tasks__collection"
           {...provided.droppableProps}
-          className={
-            snapshot.isDraggingOver
-              ? "tasks__collection drag-over"
-              : "tasks__collection"
-          }
         >
           {showCollection && (
             <ul className="tasks__list">
               {tasks.map((task, index) => {
-                let calcIndex = offset ? index + offset : index;
-                // console.log(calcIndex);
                 return (
                   <IndividualTask
                     key={task.id}
-                    index={calcIndex}
+                    index={index}
                     task={task}
                     project={getTitle(projects, task.projectId)}
                     collectionId={section ? section.id : ""}

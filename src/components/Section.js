@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { FaChevronDown } from "react-icons/fa";
+import { VscChevronDown } from "react-icons/vsc";
 import { Draggable } from "react-beautiful-dnd";
 import { Collection } from "./Collection";
+import { IconContext } from "react-icons";
+import { Grabber } from "./Grabber";
 
-export const Section = ({ tasks, projects, section, index, offset }) => {
+export const Section = ({ tasks, projects, section, index }) => {
   const [showSection, setShowSection] = useState(true);
 
   return (
@@ -12,39 +14,43 @@ export const Section = ({ tasks, projects, section, index, offset }) => {
       key={section ? section.id : "not-grouped"}
       index={index}
     >
-      {(provided) => (
+      {(provided, snapshot) => (
         <div
           className="tasks__collection-container"
           {...provided.draggableProps}
           ref={provided.innerRef}
         >
           {section && (
-            <div
-              className="tasks__collection-holder"
-              aria-label="Show/hide tasks in this collection"
-              onClick={() => setShowSection(!showSection)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") setShowSection(!showSection);
-              }}
-              role="button"
-              tabIndex={0}
-              {...provided.dragHandleProps}
-            >
-              <span>
-                <FaChevronDown
-                  className={!showSection ? "hidden-collection" : undefined}
-                />
+            <div className="tasks__collection-holder">
+              <Grabber
+                isDragging={snapshot.isDragging}
+                dragHandleProps={provided.dragHandleProps}
+              />
+              <span
+                aria-label="Show/hide tasks in this collection"
+                onClick={() => setShowSection(!showSection)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") setShowSection(!showSection);
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <IconContext.Provider value={{ size: 14 }}>
+                  <VscChevronDown
+                    className={!showSection ? "hidden-collection" : undefined}
+                    width={24}
+                    height={24}
+                  />
+                </IconContext.Provider>
               </span>
               <h2 {...provided.dragHandleProps}>{section.name}</h2>
+              {tasks.length ? <h6>{tasks.length}</h6> : ""}
             </div>
           )}
 
-          <Collection
-            section={section}
-            tasks={tasks}
-            projects={projects}
-            offset={offset}
-          />
+          {showSection && (
+            <Collection section={section} tasks={tasks} projects={projects} />
+          )}
         </div>
       )}
     </Draggable>

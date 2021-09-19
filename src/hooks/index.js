@@ -13,6 +13,14 @@ import { collatedTasksExist } from "../helpers";
 import moment from "moment";
 
 export const useOrder = (selectedProject, userId) => {
+  // We need the tasks
+  const { tasks } = useTasks(selectedProject, userId);
+
+  // We need the sections
+  const { sections, setSections } = useSections(selectedProject, userId);
+};
+
+export const useOrder2 = (selectedProject, userId) => {
   const [orders, setOrders] = useState({});
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import moment from "moment";
 import { FaRegCalendar } from "react-icons/fa";
 import { useSelectedProjectValue } from "../context";
 import { Draggable } from "react-beautiful-dnd";
+import { Grabber } from "./Grabber";
 
 const today = moment();
 const tomorrow = moment().add(1, "days");
@@ -47,9 +48,12 @@ export const IndividualTask = ({ task, index, project, collectionId }) => {
               : `tasks__list-item ${snapshot.isDragging ? "dragging" : ""}`
           }
           {...provided.draggableProps}
-          {...provided.dragHandleProps}
           ref={provided.innerRef}
         >
+          <Grabber
+            isDragging={snapshot.isDragging}
+            dragHandleProps={provided.dragHandleProps}
+          />
           <Checkbox
             taskDesc={task.task}
             checked={checked}
@@ -59,8 +63,14 @@ export const IndividualTask = ({ task, index, project, collectionId }) => {
             <span
               className={checked ? "strikethrough task-title" : "task-title"}
             >
-              {/* {index + " | " + task.task} */}
               {task.task}
+            </span>
+            <span
+              className={
+                checked ? "strikethrough task-description" : "task-description"
+              }
+            >
+              {"This is a task description!"}
             </span>
             {taskDate.current.isSame(today, "d") && (
               <span className="task-info task-info--today">
