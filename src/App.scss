@@ -343,7 +343,11 @@ header {
 
   &__project {
     cursor: pointer;
-    border-radius: 5px;
+
+    &-holder {
+      margin: 5px 0;
+      border-radius: 5px;
+    }
 
     div:nth-child(1) {
       padding: 5px 0;
@@ -367,8 +371,8 @@ header {
       }
     }
 
-    &.active,
-    &:hover {
+    &.active &-holder,
+    &:hover &-holder {
       background-color: #ececec;
     }
 
@@ -543,6 +547,10 @@ header {
     opacity: 1;
     background-color: #ececec;
   }
+}
+
+.disabled {
+  cursor: not-allowed !important;
 }
 
 .visible {

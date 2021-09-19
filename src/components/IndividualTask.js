@@ -13,7 +13,13 @@ const today = moment();
 const tomorrow = moment().add(1, "days");
 const week = moment().add(2, "days");
 
-export const IndividualTask = ({ task, index, project, collectionId }) => {
+export const IndividualTask = ({
+  task,
+  index,
+  project,
+  collectionId,
+  disableDrag,
+}) => {
   const [checked, setChecked] = useState(false);
   const taskDate = useRef(moment(task.date, "DD-MM-YYYY"));
   const { selectedProject, setSelectedProject } = useSelectedProjectValue();
@@ -36,7 +42,12 @@ export const IndividualTask = ({ task, index, project, collectionId }) => {
   };
 
   return (
-    <Draggable draggableId={task.id} key={task.id} index={index}>
+    <Draggable
+      draggableId={task.id}
+      key={task.id}
+      index={index}
+      isDragDisabled={disableDrag}
+    >
       {(provided, snapshot) => (
         <li
           key={`${task.id}`}
@@ -53,6 +64,7 @@ export const IndividualTask = ({ task, index, project, collectionId }) => {
           <Grabber
             isDragging={snapshot.isDragging}
             dragHandleProps={provided.dragHandleProps}
+            disabled={disableDrag}
           />
           <Checkbox
             taskDesc={task.task}

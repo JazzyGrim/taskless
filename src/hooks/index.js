@@ -154,6 +154,32 @@ export const useTasks = (selectedProject, userId) => {
   return { tasks, setTasks, archivedTasks };
 };
 
+export const useUserInfo = (userId) => {
+  const [userInfo, setUserInfo] = useState({});
+
+  useEffect(() => {
+    // Get all the user's projects
+    const q = query(collection(db, "users"), where("userId", "==", userId));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      // Create a projects array
+      let newUserInfo = querySnapshot.docs.map((user) => ({
+        ...user.data(),
+        docId: user.id,
+      }));
+
+      if (newUserInfo.length == 1) newUserInfo = newUserInfo[0];
+      else newUserInfo = {};
+
+      setUserInfo(newUserInfo);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  return { userInfo, setUserInfo };
+};
+
 export const useProjects = (userId) => {
   const [projects, setProjects] = useState([]);
 

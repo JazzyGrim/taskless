@@ -17,12 +17,14 @@ import {
 import { Spinner } from "./helpers/Spinner";
 import { Collection } from "./Collection";
 import { Section } from "./Section";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../firebase.js";
 
 export const Tasks = () => {
   const [showLoader, setShowLoader] = useState(false);
   const { userData } = useAuthValues();
   const { selectedProject } = useSelectedProjectValue();
-  const { projects } = useProjectsValue();
+  const { projects, userInfo } = useProjectsValue();
   const { tasks } = useTasks(selectedProject, userData.user.uid);
   const { sections } = useSections(selectedProject, userData.user.uid);
 
@@ -32,6 +34,48 @@ export const Tasks = () => {
     sectionOrder: [],
     sections: [],
   });
+
+  const updateTaskSectionId = async (taskDocId, sectionId) => {
+    const taskRef = doc(db, "tasks", taskDocId);
+
+    await updateDoc(taskRef, {
+      sectionId,
+    });
+  };
+
+  const saveProjectOrder = async (
+    ungroupedOrder,
+    sectionOrder,
+    newSections,
+    projectDocId
+  ) => {
+    let newOrder = [...ungroupedOrder];
+
+    sectionOrder.forEach((sectionId) => {
+      const curSection = newSections.find((s) => s.id === sectionId);
+      if (curSection) {
+        newOrder = [...newOrder, ...curSection.order];
+      }
+    });
+
+    if (projectDocId === "INBOX") {
+      const userRef = doc(db, "users", userInfo.docId);
+
+      await updateDoc(userRef, {
+        inboxOrder: newOrder,
+        inboxSectionOrder: sectionOrder,
+      });
+
+      return;
+    }
+
+    const projectRef = doc(db, "projects", projectDocId);
+
+    await updateDoc(projectRef, {
+      order: newOrder,
+      sectionOrder,
+    });
+  };
 
   let projectName = "";
 
@@ -71,12 +115,23 @@ export const Tasks = () => {
   });
 
   useEffect(() => {
-    if (!projects || !projects.length || collatedTasksExist(selectedProject))
+    if (
+      !projects ||
+      !projects.length ||
+      selectedProject === "TODAY" ||
+      selectedProject === "NEXT_7"
+    )
       return;
-    calculateOrder(getProjectById(projects, selectedProject));
-  }, [projects, selectedProject, tasks, sections]);
+    const currentProject =
+      selectedProject === "INBOX"
+        ? {
+            order: userInfo.inboxOrder,
+            sectionOrder: userInfo.inboxSectionOrder,
+          }
+        : getProjectById(projects, selectedProject);
 
-  useEffect(() => {}, [tasks, sections]);
+    calculateOrder(currentProject);
+  }, [selectedProject, tasks, sections, userInfo]);
 
   const calculateOrder = (project) => {
     const orderedTasks =
@@ -147,6 +202,16 @@ export const Tasks = () => {
         sections: newSections,
       });
 
+      // Save to database
+      saveProjectOrder(
+        orderObject.ungrouped,
+        newSectionOrder,
+        newSections,
+        selectedProject === "INBOX"
+          ? "INBOX"
+          : getProjectById(projects, selectedProject).docId
+      );
+
       return;
     }
     // ----------------
@@ -154,10 +219,6 @@ export const Tasks = () => {
     // ----------------
     // Reorder elements
     // ----------------
-    let newTaskOrder = [...getProjectById(projects, selectedProject).order];
-    let sourceIndex = source.index;
-    let destinationIndex = destination.index;
-
     let home = orderObject.sections.find((s) => s.id === source.droppableId);
     let foreign = orderObject.sections.find(
       (s) => s.id === destination.droppableId
@@ -175,6 +236,15 @@ export const Tasks = () => {
       // If we are setting the ungrouped order
       if (home.id === "ungrouped") {
         setOrderObject({ ...orderObject, ungrouped: newTaskOrder });
+
+        saveProjectOrder(
+          newTaskOrder,
+          orderObject.sectionOrder,
+          orderObject.sections,
+          selectedProject === "INBOX"
+            ? "INBOX"
+            : getProjectById(projects, selectedProject).docId
+        );
       } else {
         // We are setting a section order
         let newSections = [...orderObject.sections];
@@ -186,6 +256,15 @@ export const Tasks = () => {
           return newSectionData;
         });
         setOrderObject({ ...orderObject, sections: newSections });
+
+        saveProjectOrder(
+          orderObject.ungrouped,
+          orderObject.sectionOrder,
+          newSections,
+          selectedProject === "INBOX"
+            ? "INBOX"
+            : getProjectById(projects, selectedProject).docId
+        );
       }
       return;
     }
@@ -194,6 +273,16 @@ export const Tasks = () => {
 
     // Moving from one section to another
     const homeOrder = Array.from(home.order);
+
+    // Update the task section ID
+    const homeTask = tasks.find((t) => t.id == homeOrder[source.index]);
+    if (homeTask) {
+      updateTaskSectionId(
+        homeTask.id,
+        destination.droppableId === "ungrouped" ? "" : destination.droppableId
+      );
+    }
+
     homeOrder.splice(source.index, 1);
     const newHome = {
       ...home,
@@ -227,6 +316,15 @@ export const Tasks = () => {
       ungrouped: ungroupedOrder,
       sections: newSections,
     });
+
+    saveProjectOrder(
+      ungroupedOrder,
+      orderObject.sectionOrder,
+      newSections,
+      selectedProject === "INBOX"
+        ? "INBOX"
+        : getProjectById(projects, selectedProject).docId
+    );
   };
 
   return (
@@ -237,7 +335,7 @@ export const Tasks = () => {
         {showLoader ? (
           <Spinner />
         ) : selectedProject === "TODAY" || selectedProject === "NEXT_7" ? (
-          <Collection tasks={tasks} projects={projects} />
+          <Collection tasks={tasks} projects={projects} disableDrag />
         ) : (
           <>
             {orderObject.for === selectedProject && (
@@ -270,6 +368,9 @@ export const Tasks = () => {
                 >
                   {orderObject.for === selectedProject &&
                     orderObject.sections.map((section, index) => {
+                      const curSec = sections.find((s) => s.id === section.id);
+                      if (!curSec || curSec.projectId !== selectedProject)
+                        return;
                       return (
                         <Section
                           key={section.id}
@@ -283,7 +384,7 @@ export const Tasks = () => {
                                 )
                               : []
                           }
-                          section={sections.find((s) => s.id === section.id)}
+                          section={curSec}
                           projects={projects}
                           index={index}
                         />

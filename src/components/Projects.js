@@ -32,6 +32,7 @@ export const Projects = () => {
               setSelectedProject(project.projectId);
             }
           }}
+          className="sidebar__project-holder"
         >
           <IndividualProject project={project} />
         </div>

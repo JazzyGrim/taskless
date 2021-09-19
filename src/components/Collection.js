@@ -3,12 +3,12 @@ import { getTitle } from "../helpers";
 import { IndividualTask } from "./IndividualTask";
 import { Droppable } from "react-beautiful-dnd";
 
-export const Collection = ({ tasks, projects, section }) => {
+export const Collection = ({ tasks, projects, section, disableDrag }) => {
   const [showCollection, setShowCollection] = useState(true);
 
   // console.log(tasks);
   return (
-    <Droppable droppableId={section ? section.id : "unsorted"} type="task">
+    <Droppable droppableId={section ? section.id : "ungrouped"} type="task">
       {(provided) => (
         <div
           ref={provided.innerRef}
@@ -25,6 +25,7 @@ export const Collection = ({ tasks, projects, section }) => {
                     task={task}
                     project={getTitle(projects, task.projectId)}
                     collectionId={section ? section.id : ""}
+                    disableDrag={disableDrag}
                   />
                 );
               })}
