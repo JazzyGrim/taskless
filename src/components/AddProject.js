@@ -5,7 +5,7 @@ import { useAuthValues } from "../context";
 import { db } from "../firebase.js";
 import { collection, addDoc } from "firebase/firestore";
 
-export const AddProject = ({ shouldShow = false }) => {
+export const AddProject = ({ shouldShow = false, addProjectToOrder }) => {
   const [show, setShow] = useState(shouldShow);
   const [projectName, setProjectName] = useState("");
   const { userData } = useAuthValues();
@@ -24,8 +24,12 @@ export const AddProject = ({ shouldShow = false }) => {
           projectId,
           name: projectName,
           userId: userData.user.uid,
+          order: [],
+          sectionOrder: [],
         });
       })();
+
+    addProjectToOrder(projectId);
   };
 
   return (

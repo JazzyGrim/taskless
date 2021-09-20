@@ -195,7 +195,8 @@ header {
     grid-template-rows: 1fr;
     grid-column-gap: 0px;
     grid-row-gap: 0px;
-    max-width: 922px;
+    // max-width: 922px;
+    max-width: 961px;
     margin: auto;
     height: 44px;
 
@@ -319,7 +320,8 @@ header {
      ============================================ */
 .sidebar {
   @include no-select();
-  width: 266px;
+  // width: 266px;
+  width: 305px;
   height: calc(100vh);
   padding-top: 74px;
   padding-right: 10px;
@@ -343,9 +345,21 @@ header {
 
   &__project {
     cursor: pointer;
-    border-radius: 5px;
 
-    div:nth-child(1) {
+    .handle:hover {
+      background-color: rgba(0, 0, 0, 0);
+    }
+
+    &-holder {
+      margin: 5px 0;
+      border-radius: 5px;
+
+      &:hover {
+        background-color: #ececec;
+      }
+    }
+
+    div:nth-child(2) {
       padding: 5px 0;
       padding-left: 10px;
       padding-right: 15px;
@@ -358,17 +372,32 @@ header {
       align-items: center;
     }
 
+    position: relative;
+
+    &-name {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 70%;
+    }
+
     &-delete {
-      margin-left: auto;
+      position: absolute;
+      right: 5%;
+      top: 16px;
+
       display: none;
 
       svg {
         color: #cacaca;
       }
+
+      &:hover svg {
+        color: #555;
+      }
     }
 
-    &.active,
-    &:hover {
+    &.active &-holder {
       background-color: #ececec;
     }
 
@@ -415,6 +444,8 @@ header {
   &__middle {
     margin-top: 20px;
     margin-bottom: 20px;
+    margin-left: 30px;
+    padding-bottom: 10px;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -441,7 +472,7 @@ header {
       color: #333;
       font-size: 15px;
       font-weight: bold;
-      padding-bottom: 20px;
+      @include va;
     }
   }
 
@@ -457,7 +488,7 @@ header {
       font-size: 15px;
       padding-left: 0;
       padding-right: 0;
-      margin: 5px 0;
+      margin: 5px 0 5px 30px;
       border-radius: 5px;
 
       div:nth-child(1) {
@@ -528,6 +559,37 @@ header {
   }
 }
 
+/* General Reusable
+     ============================================ */
+
+.handle {
+  display: block;
+  cursor: move;
+  opacity: 0;
+  margin-right: 6px;
+  padding: 1px;
+  border-radius: 3px;
+
+  &:hover {
+    opacity: 1;
+    background-color: #ececec;
+  }
+}
+
+.disabled {
+  cursor: not-allowed !important;
+}
+
+.visible {
+  opacity: 1;
+}
+
+.dragging {
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: $generic-box-shadow;
+  border-radius: 5px;
+}
+
 /* Main Content
      ============================================ */
 .content {
@@ -536,7 +598,8 @@ header {
   -ms-flex-align: center;
   align-items: center;
   grid-template-columns: 1fr auto;
-  max-width: 922px;
+  // max-width: 922px;
+  max-width: 961px;
   margin: auto;
 }
 
@@ -545,12 +608,13 @@ header {
 .tasks {
   width: 656px;
   background-color: white;
-  margin-left: 266px;
+  // margin-left: 266px;
+  margin-left: 305px;
   border-right: $generic-border;
   min-height: calc(100vh);
   vertical-align: top;
-  padding-left: 40px;
-  padding-right: 40px;
+  padding-left: 20px;
+  padding-right: 20px;
   padding-top: 80px;
   padding-bottom: 84px;
 
@@ -562,11 +626,77 @@ header {
   h2 {
     font-size: 20px;
     font-weight: normal;
-    margin: 0 30px 20px 0;
+    margin: 0 10px 10px 40px;
   }
 
   .add-task {
     margin-top: 20px;
+    margin-left: 40px;
+  }
+
+  .indented {
+    margin-left: 25px;
+  }
+
+  &__collection {
+    margin: 0 0 20px 0;
+
+    &-container {
+      // ....
+    }
+
+    &-holder {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      cursor: pointer;
+      padding-top: 10px;
+
+      &:hover .handle {
+        opacity: 1;
+      }
+
+      &-arrow {
+        color: #0000008a;
+        margin-right: 10px;
+        @include va;
+        height: 24px;
+        width: 24px;
+        padding: 3px;
+        border-radius: 3px;
+
+        svg {
+          // transition: transform 200ms ease-in-out;
+        }
+
+        &:hover {
+          background-color: #ececec;
+        }
+
+        svg.hidden-collection {
+          -webkit-transform: rotate(-90deg);
+          transform: rotate(-90deg);
+        }
+      }
+
+      h2 {
+        margin: 0 10px 0 0;
+        padding: 0;
+        color: #333;
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: bold;
+        @include va;
+      }
+
+      h6 {
+        color: grey;
+        font-size: 12px;
+        font-weight: 400;
+        margin: 0;
+        @include va;
+      }
+    }
   }
 
   &__list-item {
@@ -576,14 +706,23 @@ header {
     align-items: flex-start;
     line-height: 18px;
     color: #333;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding: 10px 0 10px 10px;
     font-size: 14px;
     list-style-type: none;
     border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+
+    position: relative;
+
+    &:hover .handle {
+      opacity: 1;
+    }
 
     .checkbox-holder {
-      margin-right: 20px;
+      margin-right: 10px;
+      width: 24px;
+      height: 24px;
+
       display: -webkit-box;
       display: -ms-flexbox;
       display: flex;
@@ -616,9 +755,18 @@ header {
       @include flex;
       flex-wrap: wrap;
       justify-content: flex-start;
+      padding: 2px 0;
 
       .task-title {
         width: 100%;
+      }
+
+      .task-description {
+        width: 100%;
+        font-size: 12px;
+        word-wrap: break-word;
+        word-break: break-all;
+        color: grey;
       }
 
       .task-info {
@@ -704,7 +852,10 @@ header {
       padding: 20px 30px;
       -webkit-transform: translate(-50%, -50%);
       transform: translate(-50%, -50%);
-
+      .header-container {
+        width: 100%;
+        height: 40px;
+      }
       .header {
         font-size: 13px;
         margin-bottom: 20px;
@@ -720,6 +871,12 @@ header {
       font-size: 12px;
       margin-top: 10px;
     }
+  }
+
+  &__input-container {
+    padding: 3px 5px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
   }
 
   &__main {
@@ -740,12 +897,20 @@ header {
 
   &__content {
     width: 100%;
-    border: 1px solid #ddd;
     background-color: white !important;
-    border-radius: 3px;
     height: 35px;
+    border: 0;
     padding-left: 10px;
     padding-right: 10px;
+
+    &:focus {
+      border: 0;
+      outline: none;
+    }
+
+    &--description {
+      font-size: 13px;
+    }
   }
 
   &__cancel,
@@ -849,6 +1014,7 @@ header {
   padding-left: 13px;
   padding-right: 20px;
   margin-top: 20px;
+  margin-left: 30px;
 
   &__input {
     margin-bottom: 20px;
