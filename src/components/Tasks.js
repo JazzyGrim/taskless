@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { AddTask } from "./AddTask";
 import { useSections, useTasks } from "../hooks";
 import { collatedTasks } from "../constants";
 import {
@@ -134,6 +133,7 @@ export const Tasks = () => {
   }, [selectedProject, tasks, sections, userInfo]);
 
   const calculateOrder = (project) => {
+    if (!project) return;
     const orderedTasks =
       tasks.length && project.order ? sortArrayById(tasks, project.order) : [];
     const orderedSections =
@@ -169,6 +169,76 @@ export const Tasks = () => {
     return sortable.slice().sort(function (a, b) {
       return sortWith.indexOf(a.id) - sortWith.indexOf(b.id);
     });
+  };
+
+  const removeTaskFromSection = (taskId, sectionId) => {
+    let newOrderObject;
+    if (sectionId === "") {
+      newOrderObject = {
+        ...orderObject,
+        ungrouped: orderObject.ungrouped.filter((id) => id !== taskId),
+      };
+    } else {
+      // We are setting a section order
+      let newSections = [...orderObject.sections];
+      // Go through each section
+      newSections = newSections.map((section) => {
+        let newSectionData = { ...section };
+        // If we find the section we're updating, update it's t ask order
+        if (section.id === sectionId)
+          newSectionData.order = newSectionData.order.filter(
+            (id) => id !== taskId
+          );
+        return newSectionData;
+      });
+
+      newOrderObject = { ...orderObject, sections: newSections };
+    }
+
+    setOrderObject(newOrderObject);
+
+    saveProjectOrder(
+      newOrderObject.ungrouped,
+      newOrderObject.sectionOrder,
+      newOrderObject.sections,
+      selectedProject === "INBOX"
+        ? "INBOX"
+        : getProjectById(projects, selectedProject).docId
+    );
+  };
+
+  const addTaskToSection = (taskId, sectionId) => {
+    let newOrderObject;
+    if (sectionId === "") {
+      newOrderObject = {
+        ...orderObject,
+        ungrouped: [...orderObject.ungrouped, taskId],
+      };
+    } else {
+      // We are setting a section order
+      let newSections = [...orderObject.sections];
+      // Go through each section
+      newSections = newSections.map((section) => {
+        let newSectionData = { ...section };
+        // If we find the section we're updating, update it's t ask order
+        if (section.id === sectionId)
+          newSectionData.order = [...newSectionData.order, taskId];
+        return newSectionData;
+      });
+
+      newOrderObject = { ...orderObject, sections: newSections };
+    }
+
+    setOrderObject(newOrderObject);
+
+    saveProjectOrder(
+      newOrderObject.ungrouped,
+      newOrderObject.sectionOrder,
+      newOrderObject.sections,
+      selectedProject === "INBOX"
+        ? "INBOX"
+        : getProjectById(projects, selectedProject).docId
+    );
   };
 
   const onDragEnd = (result) => {
@@ -352,6 +422,8 @@ export const Tasks = () => {
                 }
                 projects={projects}
                 index={-1}
+                addTaskToSection={addTaskToSection}
+                removeTaskFromSection={removeTaskFromSection}
               />
             )}
             <Droppable droppableId="all-sections" type="section">
@@ -372,22 +444,26 @@ export const Tasks = () => {
                       if (!curSec || curSec.projectId !== selectedProject)
                         return;
                       return (
-                        <Section
-                          key={section.id}
-                          tasks={
-                            tasks.length
-                              ? sortArrayById(
-                                  tasks.filter((t) =>
-                                    section.order.includes(t.id)
-                                  ),
-                                  section.order
-                                )
-                              : []
-                          }
-                          section={curSec}
-                          projects={projects}
-                          index={index}
-                        />
+                        <>
+                          <Section
+                            key={section.id}
+                            tasks={
+                              tasks.length
+                                ? sortArrayById(
+                                    tasks.filter((t) =>
+                                      section.order.includes(t.id)
+                                    ),
+                                    section.order
+                                  )
+                                : []
+                            }
+                            section={curSec}
+                            projects={projects}
+                            index={index}
+                            addTaskToSection={addTaskToSection}
+                            removeTaskFromSection={removeTaskFromSection}
+                          />
+                        </>
                       );
                     })}
 
@@ -396,7 +472,6 @@ export const Tasks = () => {
                 </div>
               )}
             </Droppable>
-            <AddTask setShowLoader={setShowLoader} />
           </>
         )}
       </div>

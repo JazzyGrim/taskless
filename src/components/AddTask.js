@@ -6,7 +6,8 @@ import { useAuthValues, useSelectedProjectValue } from "../context";
 import { ProjectOverlay } from "./ProjectOverlay";
 import { TaskDate } from "./TaskDate";
 import { db } from "../firebase.js";
-import { collection, addDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
+import { generatePushId } from "../helpers";
 
 export const AddTask = ({
   showAddTaskMain = true,
@@ -14,8 +15,11 @@ export const AddTask = ({
   showQuickAddTask,
   setShowQuickAddTask,
   setShowLoader,
+  sectionId = "",
+  addTaskToSection,
 }) => {
   const [task, setTask] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
   const [taskDate, setTaskDate] = useState("");
   const [project, setProject] = useState("");
   const [showMain, setShowMain] = useState(shouldShowMain);
@@ -35,7 +39,8 @@ export const AddTask = ({
       collatedDate = moment().add(7, "days").format("DD/MM/YYYY");
     }
 
-    const collectionRef = collection(db, "tasks");
+    const taskID = generatePushId();
+    const tasksRef = doc(db, "tasks", taskID);
 
     task &&
       projectId &&
@@ -43,17 +48,35 @@ export const AddTask = ({
         if (setShowLoader) setShowLoader(true); // Start a loader when adding a new task
         setShowProjectOverlay(false);
         setTask("");
+        setTaskDescription("");
         setProject("");
-        setShowMain("");
+        // setShowMain(false);
 
-        await addDoc(collectionRef, {
+        console.log({
           archived: false,
           projectId:
             projectId === "TODAY" || projectId === "NEXT_7"
               ? "INBOX"
               : projectId,
-          collectionId: "",
+          sectionId: sectionId,
           task,
+          description: taskDescription,
+          date: collatedDate || taskDate,
+          userId: userData.user.uid,
+        });
+
+        addTaskToSection(taskID, sectionId);
+
+        // return;
+        await setDoc(tasksRef, {
+          archived: false,
+          projectId:
+            projectId === "TODAY" || projectId === "NEXT_7"
+              ? "INBOX"
+              : projectId,
+          sectionId: sectionId,
+          task,
+          description: taskDescription,
           date: collatedDate || taskDate,
           userId: userData.user.uid,
         });
@@ -86,7 +109,7 @@ export const AddTask = ({
         <div className="add-task__main" data-testid="add-task-main">
           {showQuickAddTask && (
             <>
-              <div data-testid="quick-add-task">
+              <div className="header-container" data-testid="quick-add-task">
                 <h2 className="header">Quick Add Task</h2>
                 <span
                   className="add-task__cancel-x"
@@ -122,14 +145,47 @@ export const AddTask = ({
             showTaskDate={showTaskDate}
             setShowTaskDate={setShowTaskDate}
           />
-          <input
-            className="add-task__content"
-            aria-label="Enter your task"
-            data-testid="add-task-content"
-            type="text"
-            value={task}
-            onChange={(e) => setTask(e.target.value)}
-          />
+          <div className="add-task__input-container">
+            <input
+              className="add-task__content add-task__content--title"
+              aria-label="Enter your task"
+              data-testid="add-task-content"
+              type="text"
+              value={task}
+              onChange={(e) => setTask(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  showQuickAddTask
+                    ? addTask() && setShowQuickAddTask(false)
+                    : addTask();
+                } else if (e.key === "Escape") {
+                  setShowMain(false);
+                  setShowProjectOverlay(false);
+                }
+              }}
+              placeholder="e.g. Go shopping"
+              autoFocus
+            />
+            <input
+              className="add-task__content add-task__content--description"
+              aria-label="Enter your task description"
+              data-testid="add-task-content"
+              type="text"
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  showQuickAddTask
+                    ? addTask() && setShowQuickAddTask(false)
+                    : addTask();
+                } else if (e.key === "Escape") {
+                  setShowMain(false);
+                  setShowProjectOverlay(false);
+                }
+              }}
+              placeholder="Description"
+            />
+          </div>
           <button
             type="button"
             className="add-task__submit"

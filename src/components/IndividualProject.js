@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import PropTypes from "prop-types";
-import { useSelectedProjectValue } from "../context";
+import { useAuthValues, useSelectedProjectValue } from "../context";
 import { db } from "../firebase.js";
 import {
   doc,
@@ -12,28 +12,33 @@ import {
   where,
 } from "firebase/firestore";
 
-export const IndividualProject = ({ project }) => {
+export const IndividualProject = ({ project, removeProjectFromOrder }) => {
   const [showConfirm, setShowConfirm] = useState(false);
+  const { userData } = useAuthValues();
   // const { projects, setProjects } = useProjectsValue();
   const { setSelectedProject } = useSelectedProjectValue();
 
   const deleteProject = (docId) => {
     const documentRef = doc(db, "projects", docId);
 
+    const projectId = project.projectId;
+
     const q = query(
       collection(db, "tasks"),
-      where("projectId", "==", project.projectId)
+      where("projectId", "==", projectId),
+      where("userId", "==", userData.user.uid)
     );
 
     (async () => {
       await deleteDoc(documentRef);
 
+      setSelectedProject("INBOX");
+      removeProjectFromOrder(projectId);
+
       const querySnapshot = await getDocs(q);
       querySnapshot.docs.forEach((document) => {
         deleteDoc(doc(db, "tasks", document.id));
       });
-
-      setSelectedProject("INBOX");
     })();
   };
 

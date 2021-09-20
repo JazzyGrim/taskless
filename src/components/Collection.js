@@ -2,11 +2,18 @@ import React, { useState } from "react";
 import { getTitle } from "../helpers";
 import { IndividualTask } from "./IndividualTask";
 import { Droppable } from "react-beautiful-dnd";
+import { AddTask } from "./AddTask";
 
-export const Collection = ({ tasks, projects, section, disableDrag }) => {
+export const Collection = ({
+  tasks,
+  projects,
+  section,
+  disableDrag,
+  addTaskToSection,
+  removeTaskFromSection,
+}) => {
   const [showCollection, setShowCollection] = useState(true);
 
-  // console.log(tasks);
   return (
     <Droppable droppableId={section ? section.id : "ungrouped"} type="task">
       {(provided) => (
@@ -26,12 +33,20 @@ export const Collection = ({ tasks, projects, section, disableDrag }) => {
                     project={getTitle(projects, task.projectId)}
                     collectionId={section ? section.id : ""}
                     disableDrag={disableDrag}
+                    removeTaskFromSection={(taskId) =>
+                      removeTaskFromSection(taskId, section ? section.id : "")
+                    }
                   />
                 );
               })}
             </ul>
           )}
           {provided.placeholder}
+          <AddTask
+            addTaskToSection={addTaskToSection}
+            setShowLoader={() => {}}
+            sectionId={section ? section.id : ""}
+          />
         </div>
       )}
     </Droppable>

@@ -5,7 +5,14 @@ import { Collection } from "./Collection";
 import { IconContext } from "react-icons";
 import { Grabber } from "./Grabber";
 
-export const Section = ({ tasks, projects, section, index }) => {
+export const Section = ({
+  tasks,
+  projects,
+  section,
+  index,
+  addTaskToSection,
+  removeTaskFromSection,
+}) => {
   const [showSection, setShowSection] = useState(true);
 
   return (
@@ -34,6 +41,7 @@ export const Section = ({ tasks, projects, section, index }) => {
                 }}
                 role="button"
                 tabIndex={0}
+                className="tasks__collection-holder-arrow"
               >
                 <IconContext.Provider value={{ size: 14 }}>
                   <VscChevronDown
@@ -43,13 +51,19 @@ export const Section = ({ tasks, projects, section, index }) => {
                   />
                 </IconContext.Provider>
               </span>
-              <h2 {...provided.dragHandleProps}>{section.name}</h2>
+              <h2>{section.name}</h2>
               {tasks.length ? <h6>{tasks.length}</h6> : ""}
             </div>
           )}
 
           {showSection && (
-            <Collection section={section} tasks={tasks} projects={projects} />
+            <Collection
+              section={section}
+              tasks={tasks}
+              projects={projects}
+              addTaskToSection={addTaskToSection}
+              removeTaskFromSection={removeTaskFromSection}
+            />
           )}
         </div>
       )}

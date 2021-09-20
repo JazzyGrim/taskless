@@ -16,9 +16,9 @@ export const Grabber = ({ isDragging, dragHandleProps, disabled }) => {
         className: getClassName(),
       }}
     >
-      <div {...dragHandleProps}>
+      <span {...dragHandleProps}>
         <VscGripper />
-      </div>
+      </span>
     </IconContext.Provider>
   );
 };

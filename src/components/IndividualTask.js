@@ -19,6 +19,7 @@ export const IndividualTask = ({
   project,
   collectionId,
   disableDrag,
+  removeTaskFromSection,
 }) => {
   const [checked, setChecked] = useState(false);
   const taskDate = useRef(moment(task.date, "DD-MM-YYYY"));
@@ -35,6 +36,8 @@ export const IndividualTask = ({
 
   const archiveTask = () => {
     const documentRef = doc(db, "tasks", task.id);
+
+    removeTaskFromSection(task.id);
 
     (async () => {
       await updateDoc(documentRef, { archived: true });
@@ -82,7 +85,7 @@ export const IndividualTask = ({
                 checked ? "strikethrough task-description" : "task-description"
               }
             >
-              {"This is a task description!"}
+              {task.description}
             </span>
             {taskDate.current.isSame(today, "d") && (
               <span className="task-info task-info--today">
