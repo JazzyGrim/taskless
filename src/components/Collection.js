@@ -13,7 +13,7 @@ export const Collection = ({
   removeTaskFromSection,
 }) => {
   const [showCollection, setShowCollection] = useState(true);
-
+  console.log("TASKS", tasks);
   return (
     <Droppable droppableId={section ? section.id : "ungrouped"} type="task">
       {(provided) => (

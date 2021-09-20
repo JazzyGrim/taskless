@@ -12,6 +12,7 @@ import {
   useSelectedProjectValue,
   useProjectsValue,
   useAuthValues,
+  useOrderedDataValue,
 } from "../context";
 import { Spinner } from "./helpers/Spinner";
 import { Collection } from "./Collection";
@@ -26,6 +27,7 @@ export const Tasks = () => {
   const { projects, userInfo } = useProjectsValue();
   const { tasks } = useTasks(selectedProject, userData.user.uid);
   const { sections } = useSections(selectedProject, userData.user.uid);
+  const { dataObject } = useOrderedDataValue();
 
   const [orderObject, setOrderObject] = useState({
     for: selectedProject,
@@ -410,16 +412,7 @@ export const Tasks = () => {
           <>
             {orderObject.for === selectedProject && (
               <Collection
-                tasks={
-                  tasks.length
-                    ? sortArrayById(
-                        tasks.filter((t) =>
-                          orderObject.ungrouped.includes(t.id)
-                        ),
-                        orderObject.ungrouped
-                      )
-                    : []
-                }
+                tasks={dataObject.ungrouped}
                 projects={projects}
                 index={-1}
                 addTaskToSection={addTaskToSection}
@@ -438,23 +431,18 @@ export const Tasks = () => {
                   {...provided.dragHandleProps}
                   ref={provided.innerRef}
                 >
-                  {orderObject.for === selectedProject &&
-                    orderObject.sections.map((section, index) => {
-                      const curSec = sections.find((s) => s.id === section.id);
+                  {dataObject.for === selectedProject &&
+                    dataObject.sectionOrder.map((sectionId, index) => {
+                      const curSec = sections.find((s) => s.id === sectionId);
                       if (!curSec || curSec.projectId !== selectedProject)
                         return;
                       return (
                         <>
                           <Section
-                            key={section.id}
+                            key={sectionId}
                             tasks={
-                              tasks.length
-                                ? sortArrayById(
-                                    tasks.filter((t) =>
-                                      section.order.includes(t.id)
-                                    ),
-                                    section.order
-                                  )
+                              dataObject.sections[sectionId]
+                                ? dataObject.sections[sectionId].taskOrder
                                 : []
                             }
                             section={curSec}
