@@ -205,13 +205,39 @@ header {
       color: white;
     }
 
+    .mobile-menu {
+      @include transparent-button();
+      color: white;
+      cursor: pointer;
+      grid-area: 1 / 1;
+      padding: 0;
+      display: none;
+
+      width: 24px;
+      height: 24px;
+
+      &:hover {
+        border-radius: 3px;
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      @include mq("900px") {
+        display: block;
+      }
+    }
+
     div {
       &.logo {
+        margin-left: 30px;
         padding-left: 8px;
         grid-area: 1 / 1;
 
         img {
           width: 24px;
+        }
+
+        @include mq("900px") {
+          display: none;
         }
       }
 
@@ -330,9 +356,26 @@ header {
   overflow-y: hidden;
   border-right: $generic-border;
   background-color: #fafafa;
+  transition: transform 200ms ease;
 
   @include mq("900px") {
-    display: none;
+    transform: translateX(-100%);
+    z-index: 10;
+
+    &__overlay {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 5;
+      transition: background-color 200ms ease;
+    }
+  }
+
+  &--shown {
+    transform: translateX(0%);
   }
 
   li {
@@ -574,6 +617,10 @@ header {
     opacity: 1;
     background-color: #ececec;
   }
+
+  @include mq("900px") {
+    opacity: 1;
+  }
 }
 
 .disabled {
@@ -620,7 +667,7 @@ header {
 
   @include mq("900px") {
     margin-left: 0;
-    width: auto;
+    width: 100vw;
   }
 
   h2 {
