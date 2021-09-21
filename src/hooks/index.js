@@ -12,66 +12,6 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { collatedTasksExist } from "../helpers";
 import moment from "moment";
 
-export const useOrder = (selectedProject, userId) => {
-  // We need the tasks
-  const { tasks } = useTasks(selectedProject, userId);
-
-  // We need the sections
-  const { sections, setSections } = useSections(selectedProject, userId);
-};
-
-export const useOrder2 = (selectedProject, userId) => {
-  const [orders, setOrders] = useState({});
-
-  useEffect(() => {
-    let queryUser = false;
-    // Get all the collestions for a user
-    let queryContents = [where("userId", "==", userId)];
-    let cqueryContents = [where("userId", "==", userId)];
-
-    // Build the query
-    if (selectedProject && !collatedTasksExist(selectedProject)) {
-      queryContents.push(where("projectId", "==", selectedProject));
-    } else if (selectedProject === "INBOX" || selectedProject === 0) {
-      queryUser = true;
-      cqueryContents.push(where("projectId", "==", selectedProject));
-    } else {
-      setOrders({}); // No order when we are looking at TODAY or NEXT_7
-      return; // Don't do anything else
-    }
-
-    // Assemble the query
-    const q = query(
-      collection(db, queryUser ? "users" : "projects"),
-      ...queryContents
-    );
-    const cq = query(collection(db, "sections"), ...cqueryContents);
-
-    (async () => {
-      const querySnapshot = await getDocs(q);
-      const collectionQuerySnapshot = await getDocs(cq);
-
-      let newOrders = {};
-
-      if (querySnapshot.docs.length) {
-        newOrders[queryUser ? "INBOX" : querySnapshot.docs[0].id] =
-          querySnapshot.docs[0].data().order;
-      }
-
-      if (collectionQuerySnapshot.docs.length) {
-        collectionQuerySnapshot.docs.forEach((c) => {
-          newOrders[c.id] = c.data().order;
-        });
-      }
-
-      console.log("NEW ORDERS STATE: ", newOrders);
-      setOrders(newOrders);
-    })();
-  }, [selectedProject]);
-
-  return { orders, setOrders };
-};
-
 export const useSections = (selectedProject, userId) => {
   const [sections, setSections] = useState([]);
 
@@ -143,6 +83,7 @@ export const useTasks = (selectedProject, userId) => {
         ...task.data(),
       }));
 
+      console.log(newTasks.filter((task) => !task.archived));
       setTasks(newTasks.filter((task) => !task.archived));
 
       setArchivedTasks(newTasks.filter((task) => task.archived));

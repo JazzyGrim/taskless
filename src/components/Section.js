@@ -10,8 +10,8 @@ export const Section = ({ tasks, projects, section, index }) => {
 
   return (
     <Draggable
-      draggableId={section ? "draggable_" + section.id : "not-grouped"}
-      key={section ? "draggable_" + section.id : "not-grouped"}
+      draggableId={section ? section.id : "not-grouped"}
+      key={section ? section.id : "not-grouped"}
       index={index}
       isDragDisabled={section == null}
     >

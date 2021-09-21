@@ -170,6 +170,7 @@ export const OrderedDataProvider = ({ children }) => {
   };
 
   const removeTaskFromSection = (taskId, sectionId) => {
+    if (selectedProject === "TODAY" || selectedProject === "NEXT_7") return;
     let newDataObject = { ...dataObject };
 
     // If we are changing the ungrouped section
@@ -182,9 +183,9 @@ export const OrderedDataProvider = ({ children }) => {
       let newSections = { ...dataObject.sections };
 
       // Remove the task from the proper section
-      newSections[sectionId].taskOrder = newSections[sectionId].filter(
-        (task) => task.id !== taskId
-      );
+      newSections[sectionId].taskOrder = newSections[
+        sectionId
+      ].taskOrder.filter((task) => task.id !== taskId);
 
       newDataObject = { ...dataObject, sections: newSections };
     }
@@ -201,25 +202,18 @@ export const OrderedDataProvider = ({ children }) => {
     );
   };
 
-  const addTaskToSection = (taskId, sectionId) => {
+  const addTaskToSection = (task, sectionId) => {
     let newDataObject = { ...dataObject };
-
-    let newItem = tasks.find((task) => task.id === taskId);
-
-    // Now if the task was created in time, we don't have to do this
-    // Otherwise, the task is yet to be created
-    // We are setting the ID inside an object ( an object is used inside the dataObject.ungrouped array )
-    if (!newItem) newItem = { id: taskId };
 
     // If we are changing the ungrouped section
     if (sectionId === "") {
-      newDataObject.ungrouped.push(newItem);
+      newDataObject.ungrouped.push(task);
     } else {
       // We are setting a section order
       let newSections = { ...dataObject.sections };
 
       // Remove the task from the proper section
-      newSections[sectionId].taskOrder.push(newItem);
+      newSections[sectionId].taskOrder.push(task);
 
       newDataObject = { ...dataObject, sections: newSections };
     }
@@ -254,24 +248,19 @@ export const OrderedDataProvider = ({ children }) => {
       let newSectionOrder = [...dataObject.sectionOrder];
 
       newSectionOrder.splice(source.index, 1);
-      newSectionOrder.splice(destination.index, 0, { id: draggableId });
-
-      // Now sort the sections based on the new order
-      let newSections = [...dataObject.sections];
-      newSections = sortArrayById(newSections, newSectionOrder);
+      newSectionOrder.splice(destination.index, 0, draggableId);
 
       // Update the order object!
       setDataObject({
         ...dataObject,
         sectionOrder: newSectionOrder,
-        sections: newSections,
       });
 
       // Save to database
       saveProjectOrder(
         dataObject.ungrouped,
         newSectionOrder,
-        newSections,
+        dataObject.sections,
         selectedProject === "INBOX"
           ? "INBOX"
           : getProjectById(projects, selectedProject).docId
@@ -342,11 +331,7 @@ export const OrderedDataProvider = ({ children }) => {
     // Update the task section ID
     // 1. Get the task ID
     const homeTaskId = homeOrder[source.index];
-
-    updateTaskSectionId(
-      homeTaskId.id,
-      destination.droppableId === "ungrouped" ? "" : destination.droppableId
-    );
+    // We now have a task object
 
     // Switch positions of the tasks
     const oldTask = homeOrder[source.index];
@@ -385,6 +370,12 @@ export const OrderedDataProvider = ({ children }) => {
       selectedProject === "INBOX"
         ? "INBOX"
         : getProjectById(projects, selectedProject).docId
+    );
+
+    // Update the task's section ID last because this will cause an automatic re-order by the useEffect above
+    updateTaskSectionId(
+      homeTaskId.id,
+      destination.droppableId === "ungrouped" ? "" : destination.droppableId
     );
   };
 
