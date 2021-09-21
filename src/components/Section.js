@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { VscChevronDown } from "react-icons/vsc";
 import { Draggable } from "react-beautiful-dnd";
 import { Collection } from "./Collection";
@@ -10,8 +10,8 @@ export const Section = ({ tasks, projects, section, index }) => {
 
   return (
     <Draggable
-      draggableId={section ? section.id : "not-grouped"}
-      key={section ? section.id : "not-grouped"}
+      draggableId={section ? "draggable_" + section.id : "not-grouped"}
+      key={section ? "draggable_" + section.id : "not-grouped"}
       index={index}
       isDragDisabled={section == null}
     >
@@ -19,8 +19,8 @@ export const Section = ({ tasks, projects, section, index }) => {
         <div
           key={section ? section.id : "not-grouped-draggable"}
           className="tasks__collection-container"
-          {...provided.draggableProps}
           ref={provided.innerRef}
+          {...provided.draggableProps}
         >
           {section && (
             <div className="tasks__collection-holder">

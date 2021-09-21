@@ -56,13 +56,6 @@ export const Tasks = () => {
           <Collection tasks={tasks} projects={projects} disableDrag />
         ) : (
           <>
-            {/* {dataObject.for === selectedProject && (
-              <Collection
-                tasks={dataObject.ungrouped}
-                projects={projects}
-                index={-1}
-              />
-            )} */}
             <Droppable droppableId="all-sections" type="section">
               {(provided, snapshot) => (
                 <div
@@ -75,7 +68,7 @@ export const Tasks = () => {
                   {...provided.droppableProps}
                 >
                   {dataObject.for === selectedProject && (
-                    <Section
+                    <Collection
                       tasks={dataObject.ungrouped}
                       projects={projects}
                       index={-1}
@@ -83,18 +76,15 @@ export const Tasks = () => {
                   )}
                   {dataObject.for === selectedProject &&
                     dataObject.sectionOrder.map((sectionId, index) => {
-                      // const curSec = sections.find((s) => s.id === sectionId);
-                      // if (!curSec || curSec.projectId !== selectedProject)
-                      //   return;
+                      const curSec = dataObject.sections[sectionId];
+                      if (!curSec || curSec.projectId !== selectedProject)
+                        return;
+                      // When changing projects, the sections may be slow to update
                       return (
                         <Section
                           key={sectionId}
-                          tasks={
-                            dataObject.sections[sectionId]
-                              ? dataObject.sections[sectionId].taskOrder
-                              : []
-                          }
-                          section={dataObject.sections[sectionId]}
+                          tasks={curSec ? curSec.taskOrder : []}
+                          section={curSec}
                           projects={projects}
                           index={index}
                         />

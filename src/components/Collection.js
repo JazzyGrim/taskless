@@ -6,39 +6,33 @@ import { AddTask } from "./AddTask";
 import { useOrderedDataValue } from "../context";
 
 export const Collection = ({ tasks, projects, section, disableDrag }) => {
-  const [showCollection, setShowCollection] = useState(true);
   const { removeTaskFromSection } = useOrderedDataValue();
 
   return (
-    <Droppable
-      droppableId={section ? section.id : "ungrouped-tasks"}
-      type="task"
-    >
+    <Droppable droppableId={section ? section.id : "ungrouped"} type="task">
       {(provided) => (
         <div
           ref={provided.innerRef}
           className="tasks__collection"
           {...provided.droppableProps}
         >
-          {showCollection && (
-            <ul className="tasks__list">
-              {tasks.map((task, index) => {
-                return (
-                  <IndividualTask
-                    key={task.id}
-                    index={index}
-                    task={task}
-                    project={getTitle(projects, task.projectId)}
-                    collectionId={section ? section.id : ""}
-                    disableDrag={disableDrag}
-                    removeTaskFromSection={(taskId) =>
-                      removeTaskFromSection(taskId, section ? section.id : "")
-                    }
-                  />
-                );
-              })}
-            </ul>
-          )}
+          <ul className="tasks__list">
+            {tasks.map((task, index) => {
+              return (
+                <IndividualTask
+                  key={task.id}
+                  index={index}
+                  task={task}
+                  project={getTitle(projects, task.projectId)}
+                  collectionId={section ? section.id : ""}
+                  disableDrag={disableDrag}
+                  removeTaskFromSection={(taskId) =>
+                    removeTaskFromSection(taskId, section ? section.id : "")
+                  }
+                />
+              );
+            })}
+          </ul>
           {provided.placeholder}
           <AddTask
             setShowLoader={() => {}}
