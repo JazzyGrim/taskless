@@ -5,14 +5,7 @@ import { Collection } from "./Collection";
 import { IconContext } from "react-icons";
 import { Grabber } from "./Grabber";
 
-export const Section = ({
-  tasks,
-  projects,
-  section,
-  index,
-  addTaskToSection,
-  removeTaskFromSection,
-}) => {
+export const Section = ({ tasks, projects, section, index }) => {
   const [showSection, setShowSection] = useState(true);
 
   return (
@@ -20,9 +13,11 @@ export const Section = ({
       draggableId={section ? section.id : "not-grouped"}
       key={section ? section.id : "not-grouped"}
       index={index}
+      isDragDisabled={section == null}
     >
       {(provided, snapshot) => (
         <div
+          key={section ? section.id : "not-grouped-draggable"}
           className="tasks__collection-container"
           {...provided.draggableProps}
           ref={provided.innerRef}
@@ -57,13 +52,7 @@ export const Section = ({
           )}
 
           {showSection && (
-            <Collection
-              section={section}
-              tasks={tasks}
-              projects={projects}
-              addTaskToSection={addTaskToSection}
-              removeTaskFromSection={removeTaskFromSection}
-            />
+            <Collection section={section} tasks={tasks} projects={projects} />
           )}
         </div>
       )}

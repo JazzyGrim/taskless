@@ -3,19 +3,17 @@ import { getTitle } from "../helpers";
 import { IndividualTask } from "./IndividualTask";
 import { Droppable } from "react-beautiful-dnd";
 import { AddTask } from "./AddTask";
+import { useOrderedDataValue } from "../context";
 
-export const Collection = ({
-  tasks,
-  projects,
-  section,
-  disableDrag,
-  addTaskToSection,
-  removeTaskFromSection,
-}) => {
+export const Collection = ({ tasks, projects, section, disableDrag }) => {
   const [showCollection, setShowCollection] = useState(true);
-  console.log("TASKS", tasks);
+  const { removeTaskFromSection } = useOrderedDataValue();
+
   return (
-    <Droppable droppableId={section ? section.id : "ungrouped"} type="task">
+    <Droppable
+      droppableId={section ? section.id : "ungrouped-tasks"}
+      type="task"
+    >
       {(provided) => (
         <div
           ref={provided.innerRef}
@@ -43,7 +41,6 @@ export const Collection = ({
           )}
           {provided.placeholder}
           <AddTask
-            addTaskToSection={addTaskToSection}
             setShowLoader={() => {}}
             sectionId={section ? section.id : ""}
           />
