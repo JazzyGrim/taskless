@@ -3,8 +3,15 @@ import { FaPizzaSlice, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import PropTypes from "prop-types";
 import { AddTask } from "../AddTask";
 import { getAuth, signOut } from "firebase/auth";
+import { IconContext } from "react-icons";
+import { CgClose, CgMenuLeftAlt } from "react-icons/cg";
 
-export const Header = ({ darkMode, setDarkMode }) => {
+export const Header = ({
+  darkMode,
+  setDarkMode,
+  showSidebar,
+  setShowSidebar,
+}) => {
   const [shouldShowMain, setShouldShowMain] = useState(false);
   const [showQuickAddTask, setShowQuickAddTask] = useState(false);
   const [showSettings, setShouldShowSettings] = useState(false);
@@ -41,6 +48,17 @@ export const Header = ({ darkMode, setDarkMode }) => {
   return (
     <header className="header" data-testid="header">
       <nav>
+        <button
+          className="mobile-menu"
+          data-testid="menu-action"
+          aria-label="Menu shown/hidden"
+          type="button"
+          onClick={() => setShowSidebar(!showSidebar)}
+        >
+          <IconContext.Provider value={{ size: 24, color: "white" }}>
+            {showSidebar ? <CgClose /> : <CgMenuLeftAlt />}
+          </IconContext.Provider>
+        </button>
         <div className="logo">
           <img src="/images/logo.png" alt="Todoist" />
         </div>
