@@ -12,6 +12,12 @@ import {
 
 import { AuthContext, AuthProvider, useAuthValues } from "./auth-context";
 
+import {
+  OrderedDataContext,
+  OrderedDataProvider,
+  useOrderedDataValue,
+} from "./ordered-data-context";
+
 export {
   ProjectsContext,
   ProjectsProvider,
@@ -22,4 +28,7 @@ export {
   AuthContext,
   AuthProvider,
   useAuthValues,
+  OrderedDataContext,
+  OrderedDataProvider,
+  useOrderedDataValue,
 };

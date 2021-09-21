@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { FaRegListAlt, FaRegCalendarAlt } from "react-icons/fa";
 import moment from "moment";
 import PropTypes from "prop-types";
-import { useAuthValues, useSelectedProjectValue } from "../context";
+import {
+  useAuthValues,
+  useOrderedDataValue,
+  useSelectedProjectValue,
+} from "../context";
 import { ProjectOverlay } from "./ProjectOverlay";
 import { TaskDate } from "./TaskDate";
 import { db } from "../firebase.js";
@@ -16,7 +20,6 @@ export const AddTask = ({
   setShowQuickAddTask,
   setShowLoader,
   sectionId = "",
-  addTaskToSection,
 }) => {
   const [task, setTask] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
@@ -28,6 +31,7 @@ export const AddTask = ({
   const { userData } = useAuthValues();
 
   const { selectedProject } = useSelectedProjectValue();
+  const { addTaskToSection } = useOrderedDataValue();
 
   const addTask = () => {
     const projectId = project || selectedProject;
@@ -52,7 +56,7 @@ export const AddTask = ({
         setProject("");
         // setShowMain(false);
 
-        console.log({
+        const taskData = {
           archived: false,
           projectId:
             projectId === "TODAY" || projectId === "NEXT_7"
@@ -63,23 +67,14 @@ export const AddTask = ({
           description: taskDescription,
           date: collatedDate || taskDate,
           userId: userData.user.uid,
-        });
+        };
 
-        addTaskToSection(taskID, sectionId);
+        console.log(taskData);
+
+        addTaskToSection({ ...taskData, id: taskID }, sectionId);
 
         // return;
-        await setDoc(tasksRef, {
-          archived: false,
-          projectId:
-            projectId === "TODAY" || projectId === "NEXT_7"
-              ? "INBOX"
-              : projectId,
-          sectionId: sectionId,
-          task,
-          description: taskDescription,
-          date: collatedDate || taskDate,
-          userId: userData.user.uid,
-        });
+        await setDoc(tasksRef, taskData);
       })();
   };
 
