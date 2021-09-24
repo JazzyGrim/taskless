@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaPizzaSlice, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import PropTypes from "prop-types";
-import { AddTask } from "../AddTask";
+import { AddTaskAndSection } from "../AddTaskAndSection";
 import { getAuth, signOut } from "firebase/auth";
 import { IconContext } from "react-icons";
 import { CgClose, CgMenuLeftAlt } from "react-icons/cg";
@@ -122,8 +122,8 @@ export const Header = ({
         </div>
       </nav>
 
-      <AddTask
-        showAddTaskMain={false}
+      <AddTaskAndSection
+        showAddButtonsMain={false}
         shouldShowMain={shouldShowMain}
         showQuickAddTask={showQuickAddTask}
         setShowQuickAddTask={setShowQuickAddTask}
