@@ -13,25 +13,27 @@ import { db } from "../firebase.js";
 import { doc, setDoc } from "firebase/firestore";
 import { generatePushId } from "../helpers";
 
-export const AddTask = ({
-  showAddTaskMain = true,
-  shouldShowMain = false,
-  showQuickAddTask,
+export const AddTaskAndSection = ({
+  showAddButtonsMain = true, // If we should show the add buttons for this component ( NO, when using Quick Add )
+  shouldShowMain = false, // If the buttons should be shown ( toggled when opening and closing the form )
+  showQuickAddTask, // If we are using this component inside the Quick Add feature
   setShowQuickAddTask,
   setShowLoader,
   sectionId = "",
 }) => {
   const [task, setTask] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
+  const [sectionName, setSectionName] = useState("");
   const [taskDate, setTaskDate] = useState("");
   const [project, setProject] = useState("");
   const [showMain, setShowMain] = useState(shouldShowMain);
+  const [showMainSection, setShowMainSection] = useState(false);
   const [showProjectOverlay, setShowProjectOverlay] = useState(false);
   const [showTaskDate, setShowTaskDate] = useState(false);
   const { userData } = useAuthValues();
 
   const { selectedProject } = useSelectedProjectValue();
-  const { addTaskToSection } = useOrderedDataValue();
+  const { addTaskToSection, addSectionToProject } = useOrderedDataValue();
 
   const addTask = () => {
     const projectId = project || selectedProject;
@@ -51,10 +53,6 @@ export const AddTask = ({
       (async () => {
         if (setShowLoader) setShowLoader(true); // Start a loader when adding a new task
         setShowProjectOverlay(false);
-        setTask("");
-        setTaskDescription("");
-        setProject("");
-        // setShowMain(false);
 
         const taskData = {
           archived: false,
@@ -69,12 +67,43 @@ export const AddTask = ({
           userId: userData.user.uid,
         };
 
-        console.log(taskData);
-
         addTaskToSection({ ...taskData, id: taskID }, sectionId);
 
-        // return;
+        setTask("");
+        setTaskDescription("");
+        setProject("");
+
         await setDoc(tasksRef, taskData);
+      })();
+  };
+
+  const addSection = () => {
+    if (selectedProject === "TODAY" || selectedProject === "NEXT_7") return;
+
+    const projectId = selectedProject;
+    const sectionID = generatePushId();
+    const sectionRef = doc(db, "sections", sectionID);
+
+    sectionName &&
+      projectId &&
+      (async () => {
+        if (setShowLoader) setShowLoader(true); // Start a loader when adding a new section
+        setShowProjectOverlay(false);
+        setShowMainSection(false);
+
+        const sectionData = {
+          projectId,
+          sectionId: sectionID,
+          name: sectionName,
+          userId: userData.user.uid,
+        };
+
+        addSectionToProject({ ...sectionData, id: sectionID }, sectionId);
+
+        setSectionName("");
+        setProject("");
+
+        await setDoc(sectionRef, sectionData);
       })();
   };
 
@@ -83,24 +112,90 @@ export const AddTask = ({
       className={showQuickAddTask ? "add-task add-task__overlay" : "add-task"}
       data-testid="add-task-comp"
     >
-      {showAddTaskMain && !(showMain || showQuickAddTask) && (
-        <div
-          className="add-task__shallow"
-          data-testid="show-main-action"
-          onClick={() => setShowMain(!showMain)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") setShowMain(!showMain);
-          }}
-          tabIndex={0}
-          aria-label="Add task"
-          role="button"
-        >
-          <span className="add-task__plus">+</span>
-          <span className="add-task__text">Add Task</span>
+      {showAddButtonsMain &&
+        !(showMain || showMainSection || showQuickAddTask) && (
+          <div className="add-task__container">
+            <div
+              className="add-task__shallow"
+              data-testid="show-main-action"
+              onClick={() => setShowMain(!showMain)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") setShowMain(!showMain);
+              }}
+              tabIndex={0}
+              aria-label="Add task"
+              role="button"
+            >
+              <span className="add-task__plus">+</span>
+              <span className="add-task__text">Add Task</span>
+            </div>
+            <div
+              className="add-section__shallow"
+              data-testid="show-main-action"
+              onClick={() => setShowMainSection(!showMainSection)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") setShowMainSection(!showMainSection);
+              }}
+              tabIndex={0}
+              aria-label="Add section"
+              role="button"
+            >
+              <span className="add-section__plus">+</span>
+              <span className="add-section__text">Add Section</span>
+            </div>
+          </div>
+        )}
+
+      {showMainSection && !showMain && (
+        <div className="add-section__main" data-testid="add-section-main">
+          <div className="add-section__input-container">
+            <input
+              className="add-section__content add-section__content--title"
+              aria-label="Enter new section name"
+              data-testid="add-task-content"
+              type="text"
+              value={sectionName}
+              onChange={(e) => setSectionName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  addSection();
+                } else if (e.key === "Escape") {
+                  setShowMainSection(false);
+                }
+              }}
+              placeholder="e.g. Work Tasks for Mike"
+              autoFocus
+            />
+          </div>
+          <button
+            type="button"
+            className="add-section__submit"
+            data-testid="add-section"
+            onClick={() => addSection()}
+          >
+            Add Section
+          </button>
+          <span
+            className="add-section__cancel"
+            data-testid="add-section-main-cancel"
+            onClick={() => {
+              setShowMainSection(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setShowMainSection(false);
+              }
+            }}
+            aria-label="Cancel adding a section"
+            tabIndex={0}
+            role="button"
+          >
+            Cancel
+          </span>
         </div>
       )}
 
-      {(showMain || showQuickAddTask) && (
+      {((showMain && !showMainSection) || showQuickAddTask) && (
         <div className="add-task__main" data-testid="add-task-main">
           {showQuickAddTask && (
             <>
@@ -156,6 +251,7 @@ export const AddTask = ({
                 } else if (e.key === "Escape") {
                   setShowMain(false);
                   setShowProjectOverlay(false);
+                  if (showQuickAddTask) setShowQuickAddTask(false);
                 }
               }}
               placeholder="e.g. Go shopping"
@@ -176,6 +272,7 @@ export const AddTask = ({
                 } else if (e.key === "Escape") {
                   setShowMain(false);
                   setShowProjectOverlay(false);
+                  if (showQuickAddTask) setShowQuickAddTask(false);
                 }
               }}
               placeholder="Description"
@@ -244,8 +341,8 @@ export const AddTask = ({
   );
 };
 
-AddTask.propTypes = {
-  showAddTaskMain: PropTypes.bool,
+AddTaskAndSection.propTypes = {
+  showAddButtonsMain: PropTypes.bool,
   shouldShowMain: PropTypes.bool,
   showQuickAddTask: PropTypes.bool,
   setShowQuickAddTask: PropTypes.func,

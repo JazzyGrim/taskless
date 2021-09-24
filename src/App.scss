@@ -156,6 +156,12 @@ $generic-bg: #db4c3f;
   }
 }
 
+@mixin mqFine() {
+  @media (pointer: coarse) {
+    @content;
+  }
+}
+
 /* Darkmode
      ============================================ */
 .darkmode {
@@ -377,9 +383,18 @@ header {
   &--shown {
     transform: translateX(0%);
   }
+  @media (pointer: fine) {
+    li {
+      &:hover .sidebar__project-delete {
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+      }
+    }
+  }
 
-  li {
-    &:hover .sidebar__project-delete {
+  @media (pointer: coarse) {
+    .sidebar__project-delete {
       display: -webkit-box;
       display: -ms-flexbox;
       display: flex;
@@ -397,8 +412,10 @@ header {
       margin: 5px 0;
       border-radius: 5px;
 
-      &:hover {
-        background-color: #ececec;
+      @media (pointer: fine) {
+        &:hover {
+          background-color: #ececec;
+        }
       }
     }
 
@@ -679,6 +696,13 @@ header {
   .add-task {
     margin-top: 20px;
     margin-left: 40px;
+
+    &__container {
+      @include flex;
+      justify-content: space-between;
+
+      margin-right: 10px;
+    }
   }
 
   .indented {
@@ -703,7 +727,8 @@ header {
         opacity: 1;
       }
 
-      &-arrow {
+      &-arrow,
+      &-settings {
         color: #0000008a;
         margin-right: 10px;
         @include va;
@@ -726,6 +751,11 @@ header {
         }
       }
 
+      &-settings {
+        margin-left: auto;
+        position: relative;
+      }
+
       h2 {
         margin: 0 10px 0 0;
         padding: 0;
@@ -742,6 +772,40 @@ header {
         font-weight: 400;
         margin: 0;
         @include va;
+      }
+    }
+
+    &-popup {
+      width: 200px;
+      padding: 5px 10px;
+
+      position: absolute;
+      top: 28px;
+      right: 0;
+
+      z-index: 5;
+
+      box-shadow: $generic-box-shadow;
+
+      background-color: white;
+      @include flex(column);
+
+      span {
+        @include listItem();
+        @include va(left);
+        font-size: 13px;
+
+        svg {
+          width: 16px;
+          height: 16px;
+          margin-right: 10px;
+          color: grey;
+        }
+
+        &:hover,
+        &:hover svg {
+          color: $generic-bg;
+        }
       }
     }
   }
@@ -869,7 +933,8 @@ header {
 
 /* Add Task
      ============================================ */
-.add-task {
+.add-task,
+.add-section {
   &__overlay {
     background: rgba(102, 102, 102, 0.5);
     position: absolute;
@@ -883,7 +948,8 @@ header {
     transition: opacity 0.2s ease-in;
     height: calc(100vh);
 
-    .add-task__main {
+    .add-task__main,
+    .add-section__main {
       @include mq("900px") {
         width: 90%;
       }
@@ -975,29 +1041,41 @@ header {
 }
 
 .add-task__shallow,
+.add-section__shallow,
 .add-project {
   @include no-select;
   cursor: pointer;
   margin-bottom: 20px;
 
   &:hover .add-task__text,
+  &:hover .add-section__text,
   &:hover .add-project__text {
     color: #dd4b39;
   }
 }
 
 .add-task__plus,
+.add-section__plus,
 .add-project__plus {
   color: #dd4b39;
   font-size: 18px;
 }
 
 .add-task__text,
+.add-section__text,
 .add-project__text {
   display: inline-block;
   color: #545454;
   font-size: 14px;
   margin-left: 15px;
+}
+
+.add-section__plus {
+  color: #545454;
+}
+
+.add-section__text {
+  color: grey;
 }
 
 /* Task Date

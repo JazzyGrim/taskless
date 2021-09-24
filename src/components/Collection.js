@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { getTitle } from "../helpers";
 import { IndividualTask } from "./IndividualTask";
 import { Droppable } from "react-beautiful-dnd";
-import { AddTask } from "./AddTask";
+import { AddTaskAndSection } from "./AddTaskAndSection";
 import { useOrderedDataValue } from "../context";
 
 export const Collection = ({ tasks, projects, section, disableDrag }) => {
@@ -34,7 +34,7 @@ export const Collection = ({ tasks, projects, section, disableDrag }) => {
             })}
           </ul>
           {provided.placeholder}
-          <AddTask
+          <AddTaskAndSection
             setShowLoader={() => {}}
             sectionId={section ? section.id : ""}
           />

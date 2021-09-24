@@ -83,7 +83,6 @@ export const useTasks = (selectedProject, userId) => {
         ...task.data(),
       }));
 
-      console.log(newTasks.filter((task) => !task.archived));
       setTasks(newTasks.filter((task) => !task.archived));
 
       setArchivedTasks(newTasks.filter((task) => task.archived));

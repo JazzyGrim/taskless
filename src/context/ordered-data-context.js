@@ -230,6 +230,63 @@ export const OrderedDataProvider = ({ children }) => {
     );
   };
 
+  const addSectionToProject = (newSection, currentSectionId) => {
+    let newDataObject = { ...dataObject };
+
+    // If we are adding a section after the ungrouped section
+    if (currentSectionId === "") {
+      newDataObject.sectionOrder.unshift(newSection.sectionId);
+    } else {
+      // We are adding a section after the current section
+      // Find the place of the old section in the array
+      const oldSectionIndex =
+        newDataObject.sectionOrder.indexOf(currentSectionId);
+      // Then add the new section after the current section
+      newDataObject.sectionOrder.splice(
+        oldSectionIndex + 1,
+        0,
+        newSection.sectionId
+      );
+    }
+
+    // Add the new section to the data array
+    let newSections = { ...dataObject.sections };
+    newSections[newSection.sectionId] = { ...newSection, taskOrder: [] };
+
+    newDataObject = { ...dataObject, sections: newSections };
+
+    setDataObject(newDataObject);
+
+    saveProjectOrder(
+      newDataObject.ungrouped,
+      newDataObject.sectionOrder,
+      newDataObject.sections,
+      selectedProject === "INBOX"
+        ? "INBOX"
+        : getProjectById(projects, selectedProject).docId
+    );
+  };
+
+  const removeSectionFromProject = (deletedSectionId) => {
+    let newDataObject = { ...dataObject };
+
+    newDataObject.sectionOrder = newDataObject.sectionOrder.filter(
+      (sectionId) => sectionId !== deletedSectionId
+    );
+    delete newDataObject.sections[deletedSectionId];
+
+    setDataObject(newDataObject);
+
+    saveProjectOrder(
+      newDataObject.ungrouped,
+      newDataObject.sectionOrder,
+      newDataObject.sections,
+      selectedProject === "INBOX"
+        ? "INBOX"
+        : getProjectById(projects, selectedProject).docId
+    );
+  };
+
   const onDragEnd = (result) => {
     const { destination, source, draggableId, type } = result;
 
@@ -390,6 +447,8 @@ export const OrderedDataProvider = ({ children }) => {
         onDragEnd,
         addTaskToSection,
         removeTaskFromSection,
+        addSectionToProject,
+        removeSectionFromProject,
       }}
     >
       {children}

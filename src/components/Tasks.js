@@ -83,7 +83,7 @@ export const Tasks = () => {
                       return (
                         <Section
                           key={sectionId}
-                          tasks={curSec ? curSec.taskOrder : []}
+                          tasks={curSec.taskOrder}
                           section={curSec}
                           projects={projects}
                           index={index}
