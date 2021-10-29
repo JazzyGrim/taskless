@@ -13,6 +13,12 @@
     width: 100%;
     height: calc(100vh);
     @include flex;
+
+    img {
+      background-color: $generic-bg;
+      padding: 3px;
+      border-radius: 10px;
+    }
   }
 
   &__label {

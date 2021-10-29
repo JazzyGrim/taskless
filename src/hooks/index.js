@@ -166,7 +166,7 @@ export const useAuth = () => {
           else
             setUserData((oldState) => ({
               ...oldState,
-              userDataPresent: false,
+              userDataPresent: true,
               user: null,
             }));
         }),

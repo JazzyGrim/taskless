@@ -1,6 +1,6 @@
 import React from "react";
 import { App } from "./App";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 import { Login } from "./components/routes/Login";
 import { SignUp } from "./components/routes/Login/SignUp";
 import { AuthProvider } from "./context";
@@ -19,6 +19,9 @@ export const AppRoutes = () => {
         <ProtectedRoute path="/app/" redirectTo="/login">
           <App />
         </ProtectedRoute>
+        <Route exact path="/">
+          <Redirect to="/login" />
+        </Route>
       </Switch>
     </AuthProvider>
   );

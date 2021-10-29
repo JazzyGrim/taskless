@@ -5,6 +5,7 @@ import { useHistory } from "react-router-dom";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 export const Login = () => {
+  const [loadingAuthData, setLoadingAuthData] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { userData } = useAuthValues();
@@ -20,52 +21,56 @@ export const Login = () => {
   };
 
   useEffect(() => {
+    if ( userData.userDataPresent ) setLoadingAuthData( false );
     // Redirect on login
     if (userData.user) history.push("/app");
   }, [userData]);
 
   return (
     <div className="login__container">
-      <div className="login">
-        <label className="login__label">E-mail</label>
-        <input
-          className="login__content"
-          aria-label="Enter your email"
-          data-testid="login__content-email"
-          type="text"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <label className="login__label">Password</label>
-        <input
-          className="login__content"
-          aria-label="Enter your password"
-          data-testid="login__content-password"
-          type="password"
-          value={password}
-          placeholder="********"
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button
-          type="button"
-          className="login__submit"
-          data-testid="login"
-          onClick={() => handleLogin()}
-        >
-          Login
-        </button>
-        <span
-          onClick={() => history.push("/signup")}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") history.push("/singup");
-          }}
-          tabIndex={0}
-          role="button"
-          aria-label="Login into Taskless"
-        >
-          Don't have an account? Sign up!
-        </span>
-      </div>
+      { loadingAuthData ? 
+          <img src="/images/logo.png" alt="Todoist" />
+          : <div className="login">
+              <label className="login__label">E-mail</label>
+              <input
+                className="login__content"
+                aria-label="Enter your email"
+                data-testid="login__content-email"
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <label className="login__label">Password</label>
+              <input
+                className="login__content"
+                aria-label="Enter your password"
+                data-testid="login__content-password"
+                type="password"
+                value={password}
+                placeholder="********"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="login__submit"
+                data-testid="login"
+                onClick={() => handleLogin()}
+              >
+                Login
+              </button>
+              <span
+                onClick={() => history.push("/signup")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") history.push("/singup");
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Login into Taskless"
+              >
+                Don't have an account? Sign up!
+              </span>
+            </div>
+      }
     </div>
   );
 };
