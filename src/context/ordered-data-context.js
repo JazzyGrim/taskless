@@ -137,7 +137,7 @@ export const OrderedDataProvider = ({ children }) => {
 
     // Now map each ID in the UNGROUPED task order array to their corresponding task
     // If we have a stored order for the ungrouped tasks, and the tasks aren't empty ( important )
-    if (project.order.length != 0 && tasks.length)
+    if (project.order && project.order.length != 0 && tasks.length)
       newDataObject.ungrouped = project.order
         .filter((taskId) =>
           newTaskObject[taskId] ? newTaskObject[taskId].sectionId === "" : false
