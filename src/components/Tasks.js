@@ -75,7 +75,7 @@ export const Tasks = () => {
                     />
                   )}
                   {dataObject.for === selectedProject &&
-                    dataObject.sectionOrder.map((sectionId, index) => {
+                    dataObject.sectionOrder && dataObject.sectionOrder.map((sectionId, index) => {
                       const curSec = dataObject.sections[sectionId];
                       if (!curSec || curSec.projectId !== selectedProject)
                         return;
